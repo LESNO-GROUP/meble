@@ -466,7 +466,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
   <div class="kontakt-box">
     <div class="kontakt-txt">Masz pytania? Skontaktuj się z nami.</div>
     <div class="kontakt-dane">
-      <a href="mailto:kontakt@meblenamiare.pl" class="kontakt-link">kontakt@meblenamiare.pl</a>
+      <a href="/cdn-cgi/l/email-protection#c6ada9a8b2a7adb286aba3a4aaa3a8a7abafa7b4a3e8b6aa" class="kontakt-link"><span class="__cf_email__" data-cfemail="563d393822373d22163b33343a3338373b3f37243378263a">[email&#160;protected]</span></a>
       <span class="sep">·</span>
       <a href="tel:+48600000000" class="kontakt-link">600 000 000</a>
     </div>
@@ -476,13 +476,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
 
 </main>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ===================== DANE =====================
 const TYPY = [
-  {id:'szafa',nazwa:'Szafa wnękowa',opis:'Zabudowana we wnęce ściennej',wieniec:true},
-  {id:'regal',nazwa:'Regał',opis:'Otwarty regał na książki',wieniec:false},
-  {id:'garderoba',nazwa:'Garderoba',opis:'Z półkami i drążkami',wieniec:true},
-  {id:'lazienka',nazwa:'Zabudowa łazienkowa',opis:'Szafki łazienkowe na wymiar',wieniec:false},
+  {id:'szafa',   nazwa:'Szafa wnękowa',       opis:'Zabudowana we wnęce ściennej', wieniec:true,  gl_default:580, gl_hint:'zwykle 560–600 mm'},
+  {id:'regal',   nazwa:'Regał',               opis:'Otwarty regał na książki',     wieniec:false, gl_default:300, gl_hint:'zwykle 250–400 mm'},
+  {id:'garderoba',nazwa:'Garderoba',           opis:'Z półkami i drążkami',         wieniec:true,  gl_default:550, gl_hint:'zwykle 500–600 mm'},
+  {id:'lazienka',nazwa:'Zabudowa łazienkowa', opis:'Szafki łazienkowe na wymiar',  wieniec:false, gl_default:400, gl_hint:'zwykle 350–500 mm'},
+]
+
+const KONSTR_OPCJE = [
+  {id:'obok', nazwa:'Standard — boki przy wieńcu',    opis:'Boki szafy widoczne z zewnątrz. Najczęściej stosowane.'},
+  {id:'na',   nazwa:'Zabudowa — wieniec na bokach',   opis:'Górna i dolna deska wychodzi na pełną szerokość. Szafa wygląda jak element ściany.'},
 ]
 
 const IKONY = {
@@ -527,8 +532,25 @@ const DEKORY = [
 
 const POPULARNE = ['K101','K110','K166','K164','C001','C003','K191','K197']
 
+// ============================================================
+// STAWKI — zmień te wartości na swoje
+// ============================================================
 const STAWKI = {
-  plyta:120, hdf:45, obrzeze:2.5, robocizna_fix:150, robocizna_szt:8, marza:0.30, vat:0.23
+  plyta_m2:     120,   // zł netto / m² płyty 18mm Kronospan
+  hdf_m2:        45,   // zł netto / m² pleców HDF 3mm
+  obrzeze_mb:   2.5,   // zł / mb obrzeża ABS 2mm
+  // Akcesoria (GTV / ATM / REJS / Laguna)
+  polka_szt:     18,   // zł — złączki, kołki
+  szuflada_szt:  95,   // zł — prowadnice GTV Metabox
+  drazek_szt:    35,   // zł — drążek + 2 uchwyty
+  front_przesuwny_mb: 120, // zł / mb frontu przesuwnego (Laguna/Rejs)
+  // Robocizna
+  robocizna_projekt: 150, // zł — projekt wykonawczy (stała kwota)
+  robocizna_formatka:  8, // zł — cięcie + oklejanie jednej formatki
+  // Marża i podatek
+  marza: 0.30,   // 30% — zmień na swoje
+  vat:   0.23,   // 23% VAT
+  min_zamowienie: 800, // zł netto minimum
 }
 
 // ===================== STAN =====================
@@ -589,15 +611,36 @@ function selTyp(id){
   stan.typ = id
   renderTyp()
   const t = TYPY.find(x=>x.id===id)
+  // Ustaw domyślną głębokość i hint per typ mebla
+  const inpGl = document.getElementById('inp-gl')
+  inpGl.placeholder = `np. ${t.gl_default}`
+  document.querySelector('#f-gl .field-hint').textContent = `200–800 mm (${t.gl_hint})`
+  // Pokaż/ukryj dropdown konstrukcji boków
   const row = document.getElementById('konstr-row')
-  row.style.display = t.wieniec ? 'flex' : 'none'
+  if(t.wieniec){
+    row.style.display = 'flex'
+    renderKonstr()
+  } else {
+    row.style.display = 'none'
+  }
   document.getElementById('k1-dalej').disabled = false
+}
+
+function renderKonstr(){
+  const sel = document.getElementById('konstr-sel')
+  sel.innerHTML = KONSTR_OPCJE.map(k=>`<option value="${k.id}">${k.nazwa}</option>`).join('')
+  sel.value = stan.konstr
+  aktualizujHintKonstr()
+}
+
+function aktualizujHintKonstr(){
+  const k = KONSTR_OPCJE.find(x=>x.id===stan.konstr)
+  document.getElementById('konstr-hint').textContent = k?.opis||''
 }
 
 document.getElementById('konstr-sel').addEventListener('change',function(){
   stan.konstr = this.value
-  const hints = {obok:'Standardowa — boki widoczne z zewnątrz', na:'Boki schowane — wieniec wychodzi na ścianę'}
-  document.getElementById('konstr-hint').textContent = hints[this.value]||''
+  aktualizujHintKonstr()
   calcAll()
 })
 
@@ -746,15 +789,106 @@ function rysujCanvas(canvasId){
   const gS=Math.max(2,Math.round(G*sc))
   ctx.clearRect(0,0,cv.width,cv.height)
 
+  // Kolor z wybranego dekoru lub domyślny beż
+  const dekor = DEKORY.find(d=>d.id===stan.material)
+  const kolKorpus  = dekor ? dekor.kol : '#c4a882'
+  const kolPlecy   = dekor ? blendKolor(dekor.kol, '#ffffff', 0.55) : '#f0eae0'
+  const kolPolka   = dekor ? blendKolor(dekor.kol, '#ffffff', 0.35) : '#d4b896'
+  const kolDrazek  = dekor ? ciemniejszy(dekor.kol, 0.35) : '#9c7a45'
+  const kolSzufl   = dekor ? blendKolor(dekor.kol, '#ffffff', 0.6) : '#ede4d3'
+
   // Plecy
-  ctx.fillStyle='#f0eae0'
+  ctx.fillStyle = kolPlecy
   ctx.fillRect(ox+gS,oy+gS,rW-2*gS,rH-gS)
   // Korpus
-  ctx.fillStyle='#c4a882'
+  ctx.fillStyle = kolKorpus
   ctx.fillRect(ox,oy,gS,rH)
   ctx.fillRect(ox+rW-gS,oy,gS,rH)
   ctx.fillRect(ox,oy,rW,gS)
   ctx.fillRect(ox,oy+rH-gS,rW,gS)
+
+  const n=stan.sekcje.length
+  const as=autoSzer()
+  let xC=ox+gS
+
+  stan.sekcje.forEach((sek,si)=>{
+    const sw=(sek.auto?as:(sek.szer||as))
+    const swpx=Math.round(sw*sc)
+    const iT=oy+gS, iH=rH-2*gS
+    if(si<n-1){ctx.fillStyle=kolKorpus;ctx.fillRect(xC+swpx,oy+gS,gS,rH-2*gS)}
+    if(sek.el.length===0){xC+=swpx+gS;return}
+    const eH=Math.floor(iH/sek.el.length)
+    sek.el.forEach((el,ei)=>{
+      const eyT=iT+ei*eH, eyH=ei===sek.el.length-1?iH-ei*eH:eH
+      if(el.t==='polka'){
+        ctx.fillStyle=kolPolka;ctx.fillRect(xC+1,eyT+eyH-gS,swpx-1,gS)
+        ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=.5;ctx.setLineDash([3,3])
+        ctx.beginPath();ctx.moveTo(xC+4,eyT);ctx.lineTo(xC+swpx-2,eyT);ctx.stroke()
+        ctx.setLineDash([])
+        ctx.strokeStyle=kolKorpus;ctx.lineWidth=1
+        ctx.beginPath();ctx.moveTo(xC+8,eyT+eyH/2);ctx.lineTo(xC+swpx-6,eyT+eyH/2);ctx.stroke()
+      } else if(el.t==='drazek'){
+        const dy=eyT+eyH*.42
+        ctx.strokeStyle=kolDrazek;ctx.lineWidth=2
+        ctx.beginPath();ctx.moveTo(xC+6,dy);ctx.lineTo(xC+swpx-4,dy);ctx.stroke()
+        ;[xC+10,xC+swpx-10].forEach(hx=>{
+          ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(hx,oy+gS+4);ctx.lineTo(hx,dy);ctx.stroke()
+          ctx.beginPath();ctx.arc(hx,oy+gS+3,2,0,Math.PI*2);ctx.fillStyle=kolDrazek;ctx.fill()
+        })
+        const hc=Math.max(1,Math.floor(sw/250)),step=swpx/(hc+1)
+        ctx.strokeStyle=kolDrazek+'88';ctx.lineWidth=1
+        for(let h=1;h<=hc;h++){const hx=xC+step*h;ctx.beginPath();ctx.arc(hx,dy+5,4,Math.PI*.1,Math.PI*.9);ctx.stroke()}
+      } else if(el.t==='szuflada'){
+        const m=3,sh=eyH-6,sy=eyT+3
+        ctx.fillStyle=kolSzufl;ctx.fillRect(xC+m,sy,swpx-m*2,sh)
+        ctx.fillStyle=kolKorpus;ctx.fillRect(xC+m,sy,swpx-m*2,Math.min(8,sh*.3))
+        const mw=Math.min(30,swpx*.35),mx=xC+(swpx-mw)/2,my=sy+sh/2-1
+        ctx.fillStyle=kolDrazek;ctx.fillRect(mx,my,mw,3)
+        ctx.strokeStyle=kolKorpus;ctx.lineWidth=.5;ctx.strokeRect(xC+m,sy,swpx-m*2,sh)
+      }
+    })
+    xC+=swpx+gS
+  })
+
+  // Fronty przesuwne
+  if(stan.sekcje.some(s=>s.front==='przesuwne')){
+    ctx.strokeStyle=kolDrazek;ctx.lineWidth=1.5;ctx.setLineDash([5,4])
+    ctx.strokeRect(ox+gS+2,oy+gS+2,rW-gS*2-4,rH-gS*2-4)
+    ctx.setLineDash([])
+  }
+
+  // Wymiary
+  const fmt=v=>v>=1000?`${(v/1000).toFixed(2).replace(/\.?0+$/,'')} m`:`${v} mm`
+  ctx.fillStyle='#9ca3af';ctx.font='11px DM Sans,system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle'
+  ctx.strokeStyle='#9ca3af';ctx.lineWidth=.8;ctx.setLineDash([])
+  const ay=oy-22
+  ctx.beginPath();ctx.moveTo(ox,ay);ctx.lineTo(ox+rW,ay);ctx.stroke()
+  ;[ox,ox+rW].forEach(px=>{ctx.beginPath();ctx.moveTo(px,ay-4);ctx.lineTo(px,ay+4);ctx.stroke()})
+  ctx.fillText(fmt(Wmm),ox+rW/2,ay-11)
+  ctx.save();ctx.translate(ox-22,oy+rH/2);ctx.rotate(-Math.PI/2)
+  ctx.beginPath();ctx.moveTo(-rH/2,0);ctx.lineTo(rH/2,0);ctx.stroke()
+  ;[-rH/2,rH/2].forEach(py=>{ctx.beginPath();ctx.moveTo(py,-4);ctx.lineTo(py,4);ctx.stroke()})
+  ctx.fillText(fmt(Hmm),0,-11);ctx.restore()
+}
+
+// Pomocnicze funkcje koloru
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16)
+  return [r,g,b]
+}
+function blendKolor(hex1,hex2,t){
+  try{
+    const [r1,g1,b1]=hexToRgb(hex1),[r2,g2,b2]=hexToRgb(hex2)
+    const r=Math.round(r1+(r2-r1)*t),g=Math.round(g1+(g2-g1)*t),bb=Math.round(b1+(b2-b1)*t)
+    return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${bb.toString(16).padStart(2,'0')}`
+  }catch{return hex1}
+}
+function ciemniejszy(hex,t){
+  try{
+    const [r,g,b]=hexToRgb(hex)
+    return `#${Math.round(r*(1-t)).toString(16).padStart(2,'0')}${Math.round(g*(1-t)).toString(16).padStart(2,'0')}${Math.round(b*(1-t)).toString(16).padStart(2,'0')}`
+  }catch{return hex}
+}
 
   const n=stan.sekcje.length
   const as=autoSzer()
@@ -863,7 +997,12 @@ function renderDekory(){
 
 function selKat(k){katAkt=k;renderDekory()}
 function filterDekory(q){szukajQ=q.toLowerCase();renderDekory()}
-function selMat(id){stan.material=id;renderDekory()}
+function selMat(id){
+  stan.material=id
+  renderDekory()
+  // Odśwież canvas w kroku 3 jeśli klient tam wrócił
+  if(document.getElementById('k3').classList.contains('active')) rysujCanvas('canvas2d')
+}
 
 // ===================== KROK 5 — WYCENA =====================
 function obliczFormatki(){
@@ -911,43 +1050,57 @@ function obliczWycene(){
     const st=f.obr==='—'?0:f.obr.split(',').length
     mb+=(f.sz/1000*Math.min(st,2)+f.ws/1000*Math.max(0,st-2))*f.il
   })
+  // Akcesoria
   let ak=0
   stan.sekcje.forEach(s=>s.el.forEach(e=>{
-    if(e.t==='polka') ak+=18
-    if(e.t==='szuflada') ak+=95
-    if(e.t==='drazek') ak+=35
+    if(e.t==='polka')    ak+=STAWKI.polka_szt
+    if(e.t==='szuflada') ak+=STAWKI.szuflada_szt
+    if(e.t==='drazek')   ak+=STAWKI.drazek_szt
   }))
-  if(stan.sekcje.some(s=>s.front==='przesuwne')) ak+=(stan.szer/1000)*120
-  const rob=STAWKI.robocizna_fix+ff.length*STAWKI.robocizna_szt
-  const mat=(m2p*STAWKI.plyta+m2h*STAWKI.hdf+mb*STAWKI.obrzeze+ak)*(1+STAWKI.marza)
-  const netto=Math.max(mat+rob,800)
-  const brutto=Math.round(netto*(1+STAWKI.vat))
-  const ark=Math.ceil(m2p*1.1/(2.8*2.07))
-  return {m2p:+m2p.toFixed(2),m2h:+m2h.toFixed(2),mb:+mb.toFixed(1),ark,ak:Math.round(ak),rob:Math.round(rob),netto:Math.round(netto),brutto,ff,il:ff.reduce((a,f)=>a+f.il,0)}
+  if(stan.sekcje.some(s=>s.front==='przesuwne')) ak+=(stan.szer/1000)*STAWKI.front_przesuwny_mb
+  // Koszty
+  const koszt_mat  = m2p*STAWKI.plyta_m2 + m2h*STAWKI.hdf_m2 + mb*STAWKI.obrzeze_mb
+  const koszt_ak   = ak
+  const robocizna  = STAWKI.robocizna_projekt + ff.length*STAWKI.robocizna_formatka
+  const netto_mat  = (koszt_mat + koszt_ak) * (1 + STAWKI.marza)
+  const netto      = Math.max(netto_mat + robocizna, STAWKI.min_zamowienie)
+  const brutto     = Math.round(netto * (1 + STAWKI.vat))
+  const ark        = Math.ceil(m2p*1.1/(2.8*2.07))
+  return {
+    m2p:+m2p.toFixed(2), m2h:+m2h.toFixed(2), mb:+mb.toFixed(1),
+    ark, ak:Math.round(ak), rob:Math.round(robocizna),
+    netto:Math.round(netto), brutto, ff,
+    il:ff.reduce((a,f)=>a+f.il,0),
+    // Rozbicie dla klienta
+    mat: Math.round(koszt_mat*(1+STAWKI.marza)),
+  }
 }
 
 function renderPodsumowanie(){
   const t=TYPY.find(x=>x.id===stan.typ)
   const d=DEKORY.find(x=>x.id===stan.material)
   const w=obliczWycene()
+  const k=KONSTR_OPCJE.find(x=>x.id===stan.konstr)
 
   document.getElementById('sum-konf').innerHTML=`
     <div class="sum-row"><span>Typ</span><strong>${t?.nazwa||'—'}</strong></div>
     <div class="sum-row"><span>Wymiary</span><strong>${stan.szer} × ${stan.wys} × ${stan.gl} mm</strong></div>
     <div class="sum-row"><span>Sekcje</span><strong>${stan.sekcje.length}</strong></div>
-    ${d?`<div class="sum-row"><span>Dekor</span><strong style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;background:${d.kol};border-radius:2px;border:1px solid rgba(0,0,0,.1);display:inline-block;flex-shrink:0"></span>${d.nazwa}</strong></div>`:''}
-    ${t?.wieniec?`<div class="sum-row"><span>Konstrukcja</span><strong>${stan.konstr==='na'?'Boki NA wieńcu':'Boki obok wieńca'}</strong></div>`:''}
+    ${d?`<div class="sum-row"><span>Dekor</span><strong style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><span style="width:12px;height:12px;background:${d.kol};border-radius:2px;border:1px solid rgba(0,0,0,.1);display:inline-block;flex-shrink:0"></span>${d.nazwa}</strong></div>`:''}
+    ${t?.wieniec?`<div class="sum-row"><span>Konstrukcja</span><strong style="text-align:right">${k?.nazwa||stan.konstr}</strong></div>`:''}
   `
   if(w){
     document.getElementById('sum-wycena').innerHTML=`
-      <div class="sum-row"><span>Zużycie płyty</span><strong>${w.m2p} m²</strong></div>
-      <div class="sum-row"><span>Arkusze</span><strong>${w.ark} szt.</strong></div>
-      <div class="sum-row"><span>Obrzeże</span><strong>${w.mb} mb</strong></div>
-      <div class="sum-row"><span>Akcesoria</span><strong>${w.ak} zł</strong></div>
+      <div class="sum-row"><span>Materiały (z marżą)</span><strong>${w.mat.toLocaleString('pl-PL')} zł</strong></div>
+      <div class="sum-row"><span>Akcesoria</span><strong>${w.ak.toLocaleString('pl-PL')} zł</strong></div>
+      <div class="sum-row"><span>Projekt + cięcie</span><strong>${w.rob.toLocaleString('pl-PL')} zł</strong></div>
+      <div class="sum-row"><span>VAT 23%</span><strong>${Math.round(w.netto*0.23).toLocaleString('pl-PL')} zł</strong></div>
     `
     document.getElementById('sum-cena').textContent=`~${w.brutto.toLocaleString('pl-PL')} zł`
     document.getElementById('formatki-rows').innerHTML=w.ff.map(f=>`
-      <div class="f-row f-data${f.hdf?' f-hdf':''}"><span>${f.el}</span><span>${f.sz}</span><span>${f.ws}</span><span>${f.il}</span><span>${f.obr}</span></div>`).join('')
+      <div class="f-row f-data${f.hdf?' f-hdf':''}">
+        <span>${f.el}</span><span>${f.sz}</span><span>${f.ws}</span><span>${f.il}</span><span>${f.obr}</span>
+      </div>`).join('')
     document.getElementById('f-suma').innerHTML=`<span>Łącznie</span><span></span><span></span><span>${w.il} szt.</span><span></span>`
   }
 }
@@ -976,15 +1129,4 @@ function wyslijProjekt(){
   setTimeout(()=>{
     document.querySelectorAll('.krok').forEach(k=>{k.classList.remove('active');k.style.display='none'})
     document.getElementById('krok-ok').classList.add('active')
-    document.getElementById('krok-info').textContent=''
-    document.getElementById('stepper-wrap')?.remove()
-    window.scrollTo({top:0,behavior:'smooth'})
-  },1200)
-}
-
-// ===================== INIT =====================
-renderTyp()
-renderStepper()
-</script>
-</body>
-</html>
+    document.getElementBy
