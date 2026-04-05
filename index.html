@@ -151,6 +151,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 .podglad-wrap{background:#fff;border:1px solid var(--beige-200);border-radius:var(--r-md);padding:1rem;margin-bottom:1.5rem}
 .podglad-title{font-size:10px;font-weight:500;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
 #canvas2d{display:block;width:100%;height:auto}
+#canvas2d-sum{display:block;width:100%;height:auto}
 .podglad-legenda{display:flex;gap:.875rem;margin-top:.625rem;justify-content:center}
 .leg-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--gray-400)}
 .leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
@@ -626,7 +627,11 @@ function idDoKroku(nr){
     setTimeout(()=>rysujCanvas('canvas2d'), 50)
   }
   if(nr===4){renderDekory()}
-  if(nr===5){renderPodsumowanie();setTimeout(()=>rysujCanvasSummary(),50)}
+  if(nr===5){
+    renderPodsumowanie()
+    // Daj czas na pokazanie się kroku 5 (display:block) zanim rysujemy canvas
+    setTimeout(()=>rysujCanvasSummary(), 120)
+  }
 }
 
 // ===================== KROK 1 =====================
@@ -1232,16 +1237,22 @@ function wyslijProjekt(){
 function rysujCanvasSummary(){
   const cv = document.getElementById('canvas2d-sum')
   if(!cv) return
+
+  // Używamy stałych wymiarów z atrybutu (nie CSS) — canvas zawsze ma 900×560
+  const W_CV = 900, H_CV = 560
+  cv.width = W_CV
+  cv.height = H_CV
+
   const ctx = cv.getContext('2d')
+  ctx.clearRect(0,0,W_CV,H_CV)
+
   const Wmm = stan.szer||1700, Hmm = stan.wys||2500, G=18
-  const PAD_L=80, PAD_R=180, PAD_T=60, PAD_B=40
-  const CW=cv.width-PAD_L-PAD_R, CH=cv.height-PAD_T-PAD_B
+  const PAD_L=80, PAD_R=190, PAD_T=60, PAD_B=40
+  const CW=W_CV-PAD_L-PAD_R, CH=H_CV-PAD_T-PAD_B
   const sc = Math.min(CW/Wmm, CH/Hmm)
   const rW=Math.round(Wmm*sc), rH=Math.round(Hmm*sc)
   const ox=PAD_L+Math.round((CW-rW)/2), oy=PAD_T
   const gS=Math.max(2,Math.round(G*sc))
-
-  ctx.clearRect(0,0,cv.width,cv.height)
 
   const dekor = DEKORY.find(d=>d.id===stan.material)
   const kolKorpus = dekor ? dekor.kol : '#c4a882'
