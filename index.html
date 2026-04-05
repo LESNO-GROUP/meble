@@ -38,7 +38,10 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
 .s-line.done{background:var(--brown-400)}
 .s-circle{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--beige-300);background:#fff;color:var(--gray-400);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;transition:all .2s;cursor:default}
 .s-circle.active{background:var(--brown-400);border-color:var(--brown-400);color:#fff}
-.s-circle.done{background:var(--brown-400);border-color:var(--brown-400);color:#fff}
+.s-circle.done{background:var(--brown-400);border-color:var(--brown-400);color:#fff;cursor:pointer}
+.s-circle.done:hover{background:var(--brown-500);border-color:var(--brown-500);transform:scale(1.1)}
+.s-item.clickable{cursor:pointer}
+.s-item.clickable:hover .s-label{text-decoration:underline;text-underline-offset:2px}
 .s-label{font-size:10px;color:var(--gray-400);white-space:nowrap}
 .s-label.active{color:var(--brown-500);font-weight:500}
 .s-label.done{color:var(--brown-400)}
@@ -267,10 +270,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
   <div class="opcja-row" id="konstr-row" style="display:none">
     <span class="opcja-label">Konstrukcja boków:</span>
     <select class="field-select" id="konstr-sel">
-      <option value="obok">Boki obok wieńca (standard)</option>
-      <option value="na">Boki NA wieńcu</option>
+      <option value="obok">Standard — cokół z przodu</option>
+      <option value="na">Zabudowa — cokół na bocznych</option>
     </select>
-    <span class="opcja-hint" id="konstr-hint">Standardowa — boki widoczne z zewnątrz</span>
+    <span class="opcja-hint" id="konstr-hint">Listwa cokołowa widoczna z przodu. Najczęściej stosowane.</span>
+  </div>
+  <div class="opcja-row" id="hdf-row" style="display:none">
+    <span class="opcja-label">Plecy HDF 3mm:</span>
+    <select class="field-select" id="hdf-sel" onchange="stan.hdf=this.value;calcAll()">
+      <option value="brak">Brak pleców</option>
+      <option value="tak">Tak — naklejane HDF (wpływa na cenę)</option>
+    </select>
+    <span class="opcja-hint">HDF nakleja się na wymiar otworów — nie jest elementem konstrukcyjnym.</span>
   </div>
   <div class="nav-btns">
     <div></div>
@@ -391,26 +402,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
 <div class="krok" id="k5">
   <h1 class="k-title">Podsumowanie projektu</h1>
   <p class="k-sub">Sprawdź konfigurację i wyślij projekt do wyceny.</p>
-  <div class="sum-grid">
-    <div class="sum-card">
-      <div class="sum-head">Konfiguracja</div>
-      <div class="sum-rows" id="sum-konf"></div>
-    </div>
-    <div class="sum-card">
-      <div class="sum-head">Wycena orientacyjna</div>
-      <div class="sum-rows" id="sum-wycena"></div>
-      <div class="cena-main" id="sum-cena">—</div>
-      <div class="cena-disc">Cena orientacyjna — finalna po weryfikacji projektu</div>
-    </div>
-  </div>
-  <div class="formatki-box">
-    <div class="formatki-title">Lista formatek</div>
-    <div class="formatki-table">
-      <div class="f-row f-head"><span>Element</span><span>Szer. (mm)</span><span>Wys. (mm)</span><span>Ilość</span><span>Obrzeże</span></div>
-      <div id="formatki-rows"></div>
-      <div class="f-row f-suma" id="f-suma"></div>
+
+  <div class="sum-card" style="margin-bottom:1.25rem">
+    <div class="sum-head">Konfiguracja</div>
+    <div class="sum-rows" id="sum-konf"></div>
+    <div style="border-top:1px solid var(--beige-200);margin-top:1rem;padding-top:1rem;display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+      <span style="font-size:13px;color:var(--gray-500)">Wycena orientacyjna</span>
+      <div>
+        <div class="cena-main" id="sum-cena" style="margin-top:0">—</div>
+        <div class="cena-disc">Finalna po weryfikacji projektu</div>
+      </div>
     </div>
   </div>
+
   <div class="podglad-wrap">
     <div class="podglad-title">Podgląd schematyczny</div>
     <canvas id="canvas2d-sum" width="720" height="400"></canvas>
@@ -486,8 +490,8 @@ const TYPY = [
 ]
 
 const KONSTR_OPCJE = [
-  {id:'obok', nazwa:'Standard — boki przy wieńcu',    opis:'Boki szafy widoczne z zewnątrz. Najczęściej stosowane.'},
-  {id:'na',   nazwa:'Zabudowa — wieniec na bokach',   opis:'Górna i dolna deska wychodzi na pełną szerokość. Szafa wygląda jak element ściany.'},
+  {id:'obok', nazwa:'Standard — cokół z przodu',     opis:'Listwa cokołowa widoczna z przodu. Najczęściej stosowane.'},
+  {id:'na',   nazwa:'Zabudowa — cokół na bocznych',  opis:'Boki schowane, cokół ciągnie się po całej szerokości wnęki. Szafa wygląda jak element ściany.'},
 ]
 
 const IKONY = {
@@ -559,7 +563,7 @@ const STAWKI = {
 
 // ===================== STAN =====================
 let stan = {
-  krok:1, typ:null, konstr:'obok',
+  krok:1, typ:null, konstr:'obok', hdf:'brak',
   szer:'', wys:'', gl:'', scianyRowne:true,
   sekcje:[{id:1,auto:true,szer:null,el:[{id:1,t:'drazek'},{id:2,t:'polka'},{id:3,t:'polka'}],front:'brak'}],
   material:null, opcjaWysylki:null,
@@ -575,10 +579,18 @@ function renderStepper(){
     const done = nr < stan.krok, active = nr === stan.krok
     const lineClass = done ? 'done' : ''
     const circClass = done ? 'done' : active ? 'active' : ''
-    const labClass = done ? 'done' : active ? 'active' : ''
-    const inner = done ? `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>` : nr
+    const labClass  = done ? 'done' : active ? 'active' : ''
+    const itemClass = done ? 'clickable' : ''
+    const onclick   = done ? `onclick="idDoKroku(${nr})"` : ''
+    const inner = done
+      ? `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : nr
+    const title = done ? `title="Wróć do: ${k}"` : ''
     return (i===0 ? '' : `<div class="s-line ${lineClass}"></div>`) +
-      `<div class="s-item"><div class="s-circle ${circClass}">${inner}</div><div class="s-label ${labClass}">${k}</div></div>`
+      `<div class="s-item ${itemClass}" ${onclick} ${title}>
+        <div class="s-circle ${circClass}">${inner}</div>
+        <div class="s-label ${labClass}">${k}</div>
+      </div>`
   }).join('')
   document.getElementById('krok-info').textContent = stan.krok <= 5 ? `Krok ${stan.krok} z 5` : ''
 }
@@ -592,7 +604,11 @@ function idDoKroku(nr){
   document.getElementById('krok-ok').classList.remove('active')
   renderStepper()
   window.scrollTo({top:0,behavior:'smooth'})
-  if(nr===3){renderSekcje();rysujCanvas('canvas2d')}
+  if(nr===3){
+    renderSekcje()
+    // Krótkie opóźnienie żeby DOM był gotowy
+    setTimeout(()=>rysujCanvas('canvas2d'), 50)
+  }
   if(nr===4){renderDekory()}
   if(nr===5){renderPodsumowanie();rysujCanvas('canvas2d-sum')}
 }
@@ -615,18 +631,16 @@ function selTyp(id){
   stan.typ = id
   renderTyp()
   const t = TYPY.find(x=>x.id===id)
-  // Ustaw domyślną głębokość i hint per typ mebla
+  // Głębokość domyślna
   const inpGl = document.getElementById('inp-gl')
   inpGl.placeholder = `np. ${t.gl_default}`
   document.querySelector('#f-gl .field-hint').textContent = `200–800 mm (${t.gl_hint})`
-  // Pokaż/ukryj dropdown konstrukcji boków
+  // Konstrukcja boków (tylko dla typów z wieńcem)
   const row = document.getElementById('konstr-row')
-  if(t.wieniec){
-    row.style.display = 'flex'
-    renderKonstr()
-  } else {
-    row.style.display = 'none'
-  }
+  if(t.wieniec){ row.style.display='flex'; renderKonstr() }
+  else { row.style.display='none' }
+  // HDF zawsze dostępne
+  document.getElementById('hdf-row').style.display = 'flex'
   document.getElementById('k1-dalej').disabled = false
 }
 
@@ -946,7 +960,7 @@ function obliczFormatki(){
   if(sekcje.length>1){
     ff.push({el:'Ścianka działowa',sz:D-G,ws:H-2*G,il:sekcje.length-1,obr:'G'})
   }
-  ff.push({el:'Plecy (HDF 3mm)',sz:W-2*G+10,ws:H-G+10,il:1,obr:'—',hdf:true})
+  if(stan.hdf==='tak') ff.push({el:'Plecy (HDF 3mm)',sz:W-2*G+10,ws:H-G+10,il:1,obr:'—',hdf:true})
   const as=autoSzer()
   sekcje.forEach((sek,si)=>{
     const sw=sek.auto?as:(sek.szer||as)
@@ -1036,21 +1050,9 @@ function renderPodsumowanie(){
     <div class="sum-row"><span>Sekcje</span><strong>${stan.sekcje.length}</strong></div>
     ${d?`<div class="sum-row"><span>Dekor</span><strong style="display:flex;align-items:center;gap:5px;justify-content:flex-end"><span style="width:12px;height:12px;background:${d.kol};border-radius:2px;border:1px solid rgba(0,0,0,.1);display:inline-block;flex-shrink:0"></span>${d.nazwa}</strong></div>`:''}
     ${t?.wieniec?`<div class="sum-row"><span>Konstrukcja</span><strong style="text-align:right">${k?.nazwa||stan.konstr}</strong></div>`:''}
+    <div class="sum-row"><span>Plecy HDF</span><strong>${stan.hdf==='tak'?'Tak':'Nie'}</strong></div>
   `
-  if(w){
-    document.getElementById('sum-wycena').innerHTML=`
-      <div class="sum-row"><span>Materiały z marżą</span><strong>${w.mat.toLocaleString('pl-PL')} zł</strong></div>
-      <div class="sum-row"><span>Akcesoria</span><strong>${w.ak.toLocaleString('pl-PL')} zł</strong></div>
-      <div class="sum-row"><span>Robocizna (${w.godz}h cięcia)</span><strong>${w.rob.toLocaleString('pl-PL')} zł</strong></div>
-      <div class="sum-row"><span>VAT 23%</span><strong>${Math.round(w.netto*0.23).toLocaleString('pl-PL')} zł</strong></div>
-    `
-    document.getElementById('sum-cena').textContent=`~${w.brutto.toLocaleString('pl-PL')} zł`
-    document.getElementById('formatki-rows').innerHTML=w.ff.map(f=>`
-      <div class="f-row f-data${f.hdf?' f-hdf':''}">
-        <span>${f.el}</span><span>${f.sz}</span><span>${f.ws}</span><span>${f.il}</span><span>${f.obr}</span>
-      </div>`).join('')
-    document.getElementById('f-suma').innerHTML=`<span>Łącznie</span><span></span><span></span><span>${w.il} szt.</span><span></span>`
-  }
+  document.getElementById('sum-cena').textContent = w ? `~${w.brutto.toLocaleString('pl-PL')} zł` : '—'
 }
 
 // ===================== KROK 5 — FORMULARZ =====================
