@@ -1160,4 +1160,15 @@ function wyslijProjekt(){
   setTimeout(()=>{
     document.querySelectorAll('.krok').forEach(k=>{k.classList.remove('active');k.style.display='none'})
     document.getElementById('krok-ok').classList.add('active')
-    document.getElementBy
+    document.getElementById('krok-info').textContent=''
+    document.querySelector('.stepper-wrap').style.display='none'
+    window.scrollTo({top:0,behavior:'smooth'})
+  },1200)
+}
+
+// ===================== INIT =====================
+renderTyp()
+renderStepper()
+</script>
+</body>
+</html>
