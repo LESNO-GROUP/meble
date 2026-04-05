@@ -934,18 +934,40 @@ function setElEtykieta(si,ei,v){
 }
 
 // ===================== CANVAS 2D =====================
+// Pomocnicze funkcje koloru
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16)
+  return [r,g,b]
+}
+function blendKolor(hex1,hex2,t){
+  try{
+    const [r1,g1,b1]=hexToRgb(hex1),[r2,g2,b2]=hexToRgb(hex2)
+    const r=Math.round(r1+(r2-r1)*t),g=Math.round(g1+(g2-g1)*t),b=Math.round(b1+(b2-b1)*t)
+    return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('')
+  }catch{return hex1}
+}
+function ciemniejszy(hex,t){
+  try{
+    const [r,g,b]=hexToRgb(hex)
+    return '#'+[r,g,b].map(x=>Math.round(x*(1-t)).toString(16).padStart(2,'0')).join('')
+  }catch{return hex}
+}
+
 function rysujCanvas(canvasId){
   const cv = document.getElementById(canvasId)
   if(!cv) return
   const ctx = cv.getContext('2d')
   const Wmm = stan.szer||1700, Hmm = stan.wys||2500, G=18
   const PAD=52
-  const CW=cv.width-PAD*2, CH=cv.height-PAD*2
+  // Użyj atrybutów width/height, nie CSS (które mogą być skalowane)
+  const cvW = cv.getAttribute('width') ? parseInt(cv.getAttribute('width')) : (cv.width||720)
+  const cvH = cv.getAttribute('height') ? parseInt(cv.getAttribute('height')) : (cv.height||400)
+  const CW=cvW-PAD*2, CH=cvH-PAD*2
   const sc = Math.min(CW/Wmm, CH/Hmm)
   const rW=Math.round(Wmm*sc), rH=Math.round(Hmm*sc)
   const ox=PAD+Math.round((CW-rW)/2), oy=PAD+Math.round((CH-rH)/2)
   const gS=Math.max(2,Math.round(G*sc))
-  ctx.clearRect(0,0,cv.width,cv.height)
+  ctx.clearRect(0,0,cvW,cvH)
 
   // Kolor z wybranego dekoru lub domyślny beż
   const dekor = DEKORY.find(d=>d.id===stan.material)
@@ -1237,9 +1259,16 @@ function wyslijProjekt(){
 function rysujCanvasSummary(){
   const cv = document.getElementById('canvas2d-sum')
   if(!cv) return
-  // Wymuś stałe wymiary — niezależne od CSS
+
+  // Wymuś wymiary przez setAttribute — to też czyści canvas
   cv.setAttribute('width','900')
   cv.setAttribute('height','560')
+
+  // Upewnij się że stan ma wartości liczbowe (nie puste stringi)
+  if(!stan.szer) stan.szer = parseInt(document.getElementById('inp-szer')?.value)||1700
+  if(!stan.wys)  stan.wys  = parseInt(document.getElementById('inp-wys')?.value)||2500
+  if(!stan.gl)   stan.gl   = parseInt(document.getElementById('inp-gl')?.value)||600
+
   rysujCanvas('canvas2d-sum')
 }
 // ===================== INIT =====================
