@@ -479,7 +479,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ===================== DANE =====================
 const TYPY = [
-  {id:'szafa',   nazwa:'Szafa wnękowa',       opis:'Zabudowana we wnęce ściennej', wieniec:true,  gl_default:580, gl_hint:'zwykle 560–600 mm'},
+  {id:'szafa',   nazwa:'Szafa wnękowa',       opis:'Zabudowana we wnęce ściennej', wieniec:true,  gl_default:600, gl_hint:'zwykle 580–620 mm'},
   {id:'regal',   nazwa:'Regał',               opis:'Otwarty regał na książki',     wieniec:false, gl_default:300, gl_hint:'zwykle 250–400 mm'},
   {id:'garderoba',nazwa:'Garderoba',           opis:'Z półkami i drążkami',         wieniec:true,  gl_default:550, gl_hint:'zwykle 500–600 mm'},
   {id:'lazienka',nazwa:'Zabudowa łazienkowa', opis:'Szafki łazienkowe na wymiar',  wieniec:false, gl_default:400, gl_hint:'zwykle 350–500 mm'},
@@ -536,21 +536,25 @@ const POPULARNE = ['K101','K110','K166','K164','C001','C003','K191','K197']
 // STAWKI — zmień te wartości na swoje
 // ============================================================
 const STAWKI = {
-  plyta_m2:     120,   // zł netto / m² płyty 18mm Kronospan
-  hdf_m2:        45,   // zł netto / m² pleców HDF 3mm
-  obrzeze_mb:   2.5,   // zł / mb obrzeża ABS 2mm
+  plyta_m2:     150,   // zł netto / m² płyty 18mm Kronospan
+  hdf_m2:        60,   // zł netto / m² pleców HDF 3mm
+  obrzeze_mb:   2.0,   // zł / mb obrzeża ABS 2mm
+  odpad:        0.10,  // narzut na odpad przy cięciu (10%)
   // Akcesoria (GTV / ATM / REJS / Laguna)
-  polka_szt:     18,   // zł — złączki, kołki
-  szuflada_szt:  95,   // zł — prowadnice GTV Metabox
-  drazek_szt:    35,   // zł — drążek + 2 uchwyty
-  front_przesuwny_mb: 120, // zł / mb frontu przesuwnego (Laguna/Rejs)
-  // Robocizna
-  robocizna_projekt: 150, // zł — projekt wykonawczy (stała kwota)
-  robocizna_formatka:  8, // zł — cięcie + oklejanie jednej formatki
+  polka_szt:     10,   // zł — złączki, kołki
+  szuflada_szt: 100,   // zł — prowadnice GTV Metabox
+  drazek_szt:    30,   // zł — drążek + 2 uchwyty
+  front_przesuwny_mb: 150, // zł / mb frontu przesuwnego (Laguna/Rejs)
+  zawiasy_para:  10,   // zł / para zawiasów
+  // Robocizna: 100 zł/h × 0.5h na każdy m² płyty (cięcie + oklejanie)
+  robocizna_projekt: 200, // zł — projekt wykonawczy (stała kwota)
+  robocizna_h:      100, // zł / godzina robocizny
+  robocizna_h_per_m2: 0.5, // godzin na m² płyty
+  pakowanie:        150, // zł — pakowanie + dostawa
   // Marża i podatek
-  marza: 0.30,   // 30% — zmień na swoje
-  vat:   0.23,   // 23% VAT
-  min_zamowienie: 800, // zł netto minimum
+  marza: 0.30,          // 30% marża na materiałach i akcesoriach
+  vat:   0.23,          // 23% VAT
+  min_zamowienie: 1000, // zł netto minimum
 }
 
 // ===================== STAN =====================
@@ -1043,13 +1047,23 @@ function obliczFormatki(){
 function obliczWycene(){
   const ff=obliczFormatki()
   if(!ff.length) return null
-  let m2p=0,m2h=0,mb=0
+  let m2p=0, m2h=0, mb=0
+
   ff.forEach(f=>{
     const pow=(f.sz/1000)*(f.ws/1000)*f.il
     if(f.hdf) m2h+=pow; else m2p+=pow
-    const st=f.obr==='—'?0:f.obr.split(',').length
-    mb+=(f.sz/1000*Math.min(st,2)+f.ws/1000*Math.max(0,st-2))*f.il
+
+    // Obrzeże: suma boków widocznych (oznaczonych G/D/L/P) × 2
+    // G = górna krawędź (szerokość), D = dolna, L = lewa (wysokość), P = prawa
+    if(f.obr !== '—'){
+      const strony = f.obr.split(',').map(s=>s.trim())
+      strony.forEach(s=>{
+        if(s==='G'||s==='D') mb += (f.sz/1000) * f.il  // wzdłuż szerokości
+        if(s==='L'||s==='P') mb += (f.ws/1000) * f.il  // wzdłuż wysokości
+      })
+    }
   })
+
   // Akcesoria
   let ak=0
   stan.sekcje.forEach(s=>s.el.forEach(e=>{
@@ -1058,21 +1072,38 @@ function obliczWycene(){
     if(e.t==='drazek')   ak+=STAWKI.drazek_szt
   }))
   if(stan.sekcje.some(s=>s.front==='przesuwne')) ak+=(stan.szer/1000)*STAWKI.front_przesuwny_mb
-  // Koszty
-  const koszt_mat  = m2p*STAWKI.plyta_m2 + m2h*STAWKI.hdf_m2 + mb*STAWKI.obrzeze_mb
-  const koszt_ak   = ak
-  const robocizna  = STAWKI.robocizna_projekt + ff.length*STAWKI.robocizna_formatka
-  const netto_mat  = (koszt_mat + koszt_ak) * (1 + STAWKI.marza)
-  const netto      = Math.max(netto_mat + robocizna, STAWKI.min_zamowienie)
-  const brutto     = Math.round(netto * (1 + STAWKI.vat))
-  const ark        = Math.ceil(m2p*1.1/(2.8*2.07))
+
+  // Koszty materiałów
+  const koszt_plyta   = m2p * STAWKI.plyta_m2 * (1 + STAWKI.odpad)
+  const koszt_hdf     = m2h * STAWKI.hdf_m2
+  const koszt_obrzeze = mb  * STAWKI.obrzeze_mb
+  const koszt_mat     = koszt_plyta + koszt_hdf + koszt_obrzeze
+
+  // Robocizna: 100 zł/h × 0.5h na każdy m² płyty + projekt + pakowanie
+  const godz_cięcia = m2p * STAWKI.robocizna_h_per_m2
+  const robocizna   = STAWKI.robocizna_projekt
+                    + godz_cięcia * STAWKI.robocizna_h
+                    + STAWKI.pakowanie
+
+  // Marża tylko na materiałach i akcesoriach
+  const netto_mat = (koszt_mat + ak) * (1 + STAWKI.marza)
+  const netto     = Math.max(netto_mat + robocizna, STAWKI.min_zamowienie)
+  const brutto    = Math.round(netto * (1 + STAWKI.vat))
+  const ark       = Math.ceil(m2p*(1+STAWKI.odpad)/(2.8*2.07))
+
   return {
-    m2p:+m2p.toFixed(2), m2h:+m2h.toFixed(2), mb:+mb.toFixed(1),
-    ark, ak:Math.round(ak), rob:Math.round(robocizna),
-    netto:Math.round(netto), brutto, ff,
-    il:ff.reduce((a,f)=>a+f.il,0),
-    // Rozbicie dla klienta
-    mat: Math.round(koszt_mat*(1+STAWKI.marza)),
+    m2p:     +m2p.toFixed(2),
+    m2h:     +m2h.toFixed(2),
+    mb:      +mb.toFixed(1),
+    ark,
+    ak:      Math.round(ak),
+    rob:     Math.round(robocizna),
+    godz:    +godz_cięcia.toFixed(1),
+    netto:   Math.round(netto),
+    brutto,
+    ff,
+    il:      ff.reduce((a,f)=>a+f.il, 0),
+    mat:     Math.round(netto_mat),
   }
 }
 
@@ -1091,9 +1122,9 @@ function renderPodsumowanie(){
   `
   if(w){
     document.getElementById('sum-wycena').innerHTML=`
-      <div class="sum-row"><span>Materiały (z marżą)</span><strong>${w.mat.toLocaleString('pl-PL')} zł</strong></div>
+      <div class="sum-row"><span>Materiały z marżą</span><strong>${w.mat.toLocaleString('pl-PL')} zł</strong></div>
       <div class="sum-row"><span>Akcesoria</span><strong>${w.ak.toLocaleString('pl-PL')} zł</strong></div>
-      <div class="sum-row"><span>Projekt + cięcie</span><strong>${w.rob.toLocaleString('pl-PL')} zł</strong></div>
+      <div class="sum-row"><span>Robocizna (${w.godz}h cięcia)</span><strong>${w.rob.toLocaleString('pl-PL')} zł</strong></div>
       <div class="sum-row"><span>VAT 23%</span><strong>${Math.round(w.netto*0.23).toLocaleString('pl-PL')} zł</strong></div>
     `
     document.getElementById('sum-cena').textContent=`~${w.brutto.toLocaleString('pl-PL')} zł`
