@@ -622,8 +622,8 @@ function idDoKroku(nr){
   renderStepper()
   window.scrollTo({top:0,behavior:'smooth'})
   if(nr===3){
+    calcAll() // upewnij się że stan.szer/wys/gl są aktualne
     renderSekcje()
-    // Krótkie opóźnienie żeby DOM był gotowy
     setTimeout(()=>rysujCanvas('canvas2d'), 50)
   }
   if(nr===4){renderDekory()}
@@ -772,17 +772,16 @@ const ETYKIETY = {
 function etykietyDlaTypu(t){ return ETYKIETY[t] || ETYKIETY.polka }
 
 function autoWys(sek){
-  // Wolna przestrzeń = wysokość mebla - grubości płyt między elementami
   const H = stan.wys || 2500
   const G = 18
   const n = sek.el.length
-  if(n === 0) return 0
-  // Odejmij grubości półek-separatorów między strefami
+  if(n === 0) return 400
   const zajete_plyty = (n - 1) * G
   const wolna = H - zajete_plyty
   const fixH = sek.el.filter(e=>e.wys).reduce((a,e)=>a+(e.wys||0),0)
   const nAuto = sek.el.filter(e=>!e.wys).length
-  return nAuto > 0 ? Math.floor((wolna - fixH) / nAuto) : 0
+  if(nAuto === 0) return Math.floor(wolna / n) // fallback: równy podział
+  return Math.max(50, Math.floor((wolna - fixH) / nAuto))
 }
 
 function sumaWys(sek){
@@ -851,7 +850,7 @@ function renderSekcje(){
               <div style="display:flex;gap:6px;align-items:center">
                 <input type="number" class="el-wys-inp" placeholder="${placeholder}"
                   value="${wysVal}" min="50" max="${H}"
-                  onchange="setElWys(${si},${ei},this.value)"
+                  onblur="setElWys(${si},${ei},this.value)"
                   style="${!el.wys?'color:var(--gray-400)':''}"/>
                 ${el.wys ? `<button class="btn-clear-wys" onclick="setElWys(${si},${ei},'')" title="Resetuj do auto">↺</button>` : ''}
               </div>
@@ -875,7 +874,7 @@ function renderSekcje(){
       <div style="margin-bottom:.75rem">
         <div class="el-label">Szerokość sekcji (mm)</div>
         <div class="sek-szer-row">
-          <input type="number" placeholder="${sek.auto?`Auto: ${sw} mm`:'Podaj szerokość'}" value="${sek.auto?'':(sek.szer||'')}" ${sek.auto?'disabled':''} onchange="setSekSzer(${si},this.value)" style="${sek.auto?'background:var(--beige-50);color:var(--gray-400)':''}"/>
+          <input type="number" placeholder="${sek.auto?`Auto: ${sw} mm`:'Podaj szerokość'}" value="${sek.auto?'':(sek.szer||'')}" ${sek.auto?'disabled':''} onblur="setSekSzer(${si},this.value)" style="${sek.auto?'background:var(--beige-50);color:var(--gray-400)':''}"/>
           <button class="btn-auto${sek.auto?' on':''}" onclick="toggleAuto(${si})">${sek.auto?'Auto ✓':'Auto'}</button>
         </div>
       </div>
@@ -997,17 +996,27 @@ function rysujCanvas(canvasId){
     const iT=oy+gS, iH=rH-2*gS
     if(si<n-1){ctx.fillStyle=kolKorpus;ctx.fillRect(xC+swpx,oy+gS,gS,rH-2*gS)}
     if(sek.el.length===0){xC+=swpx+gS;return}
-    // Oblicz rzeczywiste wysokości stref w pikselach
+
+    // Oblicz rzeczywiste wysokości stref
     const aWysMm = autoWys(sek)
-    const totalMm = sek.el.reduce((a,e)=>a+(e.wys||aWysMm),0)
-    const scaledTotal = totalMm * sc
+    const gPx = Math.round(G*sc) // grubość płyty w px
+    const nEl = sek.el.length
+    // Całkowita przestrzeń minus separatory MIĘDZY elementami (nie po ostatnim)
+    const separatoryPx = (nEl - 1) * gPx
+    const dostepnePx = iH - separatoryPx
+
+    // Oblicz px każdego elementu proporcjonalnie
+    const totalMm = sek.el.reduce((a,e)=>a+Math.max(e.wys||aWysMm, 50),0)
     let eyCursor = iT
 
     sek.el.forEach((el,ei)=>{
-      const elMm = el.wys || aWysMm
-      const eyH = Math.round(elMm * sc)
+      const elMm = Math.max(el.wys || aWysMm, 50) // minimum 50mm żeby nie znikał
+      // Proporcjonalny podział dostępnej przestrzeni
+      const eyH = ei === nEl-1
+        ? (iT + iH) - eyCursor  // ostatni bierze resztę
+        : Math.round((elMm / totalMm) * dostepnePx)
       const eyT = eyCursor
-      eyCursor += eyH + Math.round(18*sc) // grubość płyty separatora
+      eyCursor += eyH + gPx // separator po elemencie (poza ostatnim obsługuje ostatni biorąc resztę)
       if(el.t==='polka'){
         ctx.fillStyle=kolPolka;ctx.fillRect(xC+1,eyT+eyH-gS,swpx-1,gS)
         ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=.5;ctx.setLineDash([3,3])
