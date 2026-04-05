@@ -10,59 +10,60 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --beige-50:#faf8f4;--beige-100:#f4efe6;--beige-200:#e8dfd0;--beige-300:#d4c4aa;
-  --brown-300:#c4a882;--brown-400:#a8845a;--brown-500:#8a6840;--brown-600:#6e5030;
-  --gray-400:#9ca3af;--gray-500:#6b7280;--gray-600:#4b5563;--gray-800:#1c1917;
-  --red:#ef4444;--green:#22c55e;--blue:#3b82f6;
+  --beige-50:#f7f3ed;--beige-100:#ede5d8;--beige-200:#ddd0bc;--beige-300:#c4b09a;
+  --brown-300:#b8895a;--brown-400:#966a38;--brown-500:#7a5228;--brown-600:#5e3c18;
+  --gray-400:#8a8a82;--gray-500:#5c5c55;--gray-600:#3d3d38;--gray-800:#1a1a16;
+  --red:#d03030;--green:#2a7a4a;--blue:#2a5fa0;
+  --ink:#1a1a16;
   --ff-display:'Cormorant Garamond',Georgia,serif;
   --ff-body:'DM Sans',system-ui,sans-serif;
-  --r-sm:8px;--r-md:14px;--r-lg:20px;
+  --r-sm:6px;--r-md:12px;--r-lg:18px;
 }
 html{font-size:16px;scroll-behavior:smooth}
-body{font-family:var(--ff-body);background:var(--beige-50);color:var(--gray-800);min-height:100vh;-webkit-font-smoothing:antialiased}
+body{font-family:var(--ff-body);background:var(--beige-50);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
 button{font-family:var(--ff-body);cursor:pointer;border:none;background:none;outline:none}
 input,select,textarea{font-family:var(--ff-body);font-size:14px;outline:none}
-input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
+input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;box-shadow:0 0 0 2px rgba(150,106,56,.15)}
 
 /* HEADER */
-.header{background:#fff;border-bottom:1px solid var(--beige-200);position:sticky;top:0;z-index:100}
-.header-inner{max-width:820px;margin:0 auto;padding:0 1.5rem;height:58px;display:flex;align-items:center;justify-content:space-between}
-.logo{font-family:var(--ff-display);font-size:19px;color:var(--gray-800);text-decoration:none;letter-spacing:-.01em}
-.krok-info{font-size:12px;color:var(--gray-400)}
+.header{background:var(--gray-800);border-bottom:none;position:sticky;top:0;z-index:100}
+.header-inner{max-width:820px;margin:0 auto;padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--ff-display);font-size:20px;color:#f0ebe2;text-decoration:none;letter-spacing:-.01em}
+.krok-info{font-size:12px;color:rgba(240,235,226,.45)}
 
 /* STEPPER */
-.stepper-wrap{background:#fff;border-bottom:1px solid var(--beige-200);padding:.875rem 1.5rem}
+.stepper-wrap{background:var(--gray-800);border-bottom:none;padding:.75rem 1.5rem}
 .stepper{max-width:820px;margin:0 auto;display:flex;align-items:center}
 .s-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
-.s-line{flex:1;height:1px;background:var(--beige-200);margin:0 8px;transition:background .3s}
-.s-line.done{background:var(--brown-400)}
-.s-circle{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--beige-300);background:#fff;color:var(--gray-400);font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;transition:all .2s;cursor:default}
+.s-line{flex:1;height:1px;background:rgba(255,255,255,.15);margin:0 8px;transition:background .3s}
+.s-line.done{background:var(--brown-300)}
+.s-circle{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);background:transparent;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;transition:all .2s;cursor:default}
 .s-circle.active{background:var(--brown-400);border-color:var(--brown-400);color:#fff}
 .s-circle.done{background:var(--brown-400);border-color:var(--brown-400);color:#fff;cursor:pointer}
 .s-circle.done:hover{background:var(--brown-500);border-color:var(--brown-500);transform:scale(1.1)}
 .s-item.clickable{cursor:pointer}
 .s-item.clickable:hover .s-label{text-decoration:underline;text-underline-offset:2px}
-.s-label{font-size:10px;color:var(--gray-400);white-space:nowrap}
-.s-label.active{color:var(--brown-500);font-weight:500}
-.s-label.done{color:var(--brown-400)}
+.s-label{font-size:10px;color:rgba(255,255,255,.35);white-space:nowrap}
+.s-label.active{color:rgba(255,255,255,.9);font-weight:500}
+.s-label.done{color:rgba(255,255,255,.6)}
 @media(max-width:480px){.s-label{display:none}.s-circle{width:22px;height:22px;font-size:10px}}
 
 /* MAIN */
 .main{max-width:820px;margin:0 auto;padding:2rem 1.5rem 5rem}
 .krok{display:none;animation:fadein .22s ease}
 .krok.active{display:block}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.k-title{font-family:var(--ff-display);font-size:28px;font-weight:400;color:var(--gray-800);margin-bottom:6px;letter-spacing:-.02em}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.k-title{font-family:var(--ff-display);font-size:30px;font-weight:400;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em}
 .k-sub{font-size:14px;color:var(--gray-500);margin-bottom:1.75rem;line-height:1.5}
 
 /* KROK 1 — typ mebla */
-.typ-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.typ-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
 @media(max-width:560px){.typ-grid{grid-template-columns:repeat(2,1fr)}}
-.typ-card{background:#fff;border:1.5px solid var(--beige-200);border-radius:var(--r-md);padding:1.25rem .875rem;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:border-color .15s,box-shadow .15s;text-align:center}
-.typ-card:hover{border-color:var(--brown-300)}
-.typ-card.sel{border-color:var(--brown-400);box-shadow:0 0 0 1px var(--brown-400);background:#fffbf7}
+.typ-card{background:#fff;border:1.5px solid var(--beige-200);border-radius:var(--r-md);padding:1.25rem .875rem;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:all .15s;text-align:center}
+.typ-card:hover{border-color:var(--brown-400);background:#fdf6ee}
+.typ-card.sel{border-color:var(--brown-400);box-shadow:0 0 0 1px var(--brown-400);background:#fdf6ee}
 .typ-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center}
-.typ-name{font-size:13px;font-weight:500;color:var(--gray-800)}
+.typ-name{font-size:13px;font-weight:500;color:var(--ink)}
 .typ-desc{font-size:11px;color:var(--gray-500);line-height:1.4}
 .opcja-row{background:var(--beige-100);border-radius:var(--r-sm);padding:.875rem 1.125rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
 .opcja-label{font-size:13px;color:var(--gray-600);white-space:nowrap}
@@ -121,6 +122,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
 .el-label{font-size:11px;color:var(--gray-400);margin-bottom:5px}
 .el-lista{display:flex;flex-direction:column;gap:3px;margin-bottom:.75rem}
 .el-item{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--beige-50);border-radius:6px;border:1px solid var(--beige-100)}
+.el-item-tall{display:flex;flex-direction:column;gap:0;padding:0;background:var(--beige-50);border-radius:6px;border:1px solid var(--beige-100);overflow:hidden}
+.el-item-top{display:flex;align-items:center;gap:7px;padding:6px 9px}
+.el-item-bottom{padding:0 9px 8px;border-top:1px solid var(--beige-100)}
+.el-wys-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.el-wys-field{display:flex;flex-direction:column;gap:3px}
+.el-wys-label{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em}
+.el-wys-inp{padding:5px 8px;border:1px solid var(--beige-200);border-radius:var(--r-sm);font-size:13px;color:var(--ink);background:#fff;width:100%}
+.el-wys-inp:focus{border-color:var(--brown-400)}
+.el-etykieta-sel{padding:5px 8px;border:1px solid var(--beige-200);border-radius:var(--r-sm);font-size:12px;color:var(--ink);background:#fff;width:100%;cursor:pointer}
+.btn-clear-wys{padding:4px 8px;border:1px solid var(--beige-200);border-radius:var(--r-sm);font-size:12px;color:var(--gray-400);background:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn-clear-wys:hover{color:var(--red);border-color:var(--red)}
 .el-ico{font-size:13px;color:var(--brown-400);width:14px;text-align:center;flex-shrink:0}
 .el-name{flex:1;font-size:12px;color:var(--gray-700,#374151)}
 .el-acts{display:flex;gap:2px}
@@ -270,8 +282,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
   <div class="opcja-row" id="konstr-row" style="display:none">
     <span class="opcja-label">Konstrukcja boków:</span>
     <select class="field-select" id="konstr-sel">
-      <option value="obok">Standard — cokół z przodu</option>
-      <option value="na">Zabudowa — cokół na bocznych</option>
+      <option value="obok">Standard</option>
+      <option value="na">Zabudowa — boki na cokole</option>
     </select>
     <span class="opcja-hint" id="konstr-hint">Listwa cokołowa widoczna z przodu. Najczęściej stosowane.</span>
   </div>
@@ -329,7 +341,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
   <label class="check-row"><input type="checkbox" id="sciany-rowne" checked onchange="calcAll()"/><span>Ściany wnęki są równe i proste</span></label>
   <div class="info-box">
     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;margin-top:2px"><circle cx="7.5" cy="7.5" r="6.5" stroke="#3b82f6" stroke-width="1.2"/><path d="M7.5 6.5v4.5M7.5 4.5v1" stroke="#3b82f6" stroke-width="1.4" stroke-linecap="round"/></svg>
-    <span>Nie masz pewności co do wymiarów? Nic nie szkodzi — na końcu możesz dodać zdjęcia wnęki lub skorzystać z pomiaru telefonem z kartką A4.</span>
+    <span>Nie masz pewności co do wymiarów? Nic nie szkodzi — na końcu możesz dołączyć zdjęcia wnęki, a my dopasujemy projekt przed realizacją.</span>
   </div>
   <div class="nav-btns">
     <button class="btn-wstecz" onclick="idDoKroku(1)">Wstecz</button>
@@ -423,9 +435,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important}
     <div class="opcje-title">Ostatni krok przed wysłaniem</div>
     <div class="opcje-sub">Jak pewny jesteś swoich pomiarów?</div>
     <div class="opcje-lista">
-      <button class="opcja-card" onclick="selOpcja('pewny',this)"><span class="opcja-ico" style="color:#22c55e">✓</span><div><div class="opcja-tit">Pomiary są dokładne — wyślij projekt</div><div class="opcja-desc">Mam pewne wymiary, chcę przejść od razu do wysłania projektu.</div></div></button>
-      <button class="opcja-card" onclick="selOpcja('zdjecia',this)"><span class="opcja-ico" style="color:#3b82f6">📷</span><div><div class="opcja-tit">Chcę dodać zdjęcia wnęki</div><div class="opcja-desc">Dołączę zdjęcia żeby widać było wnękę i ewentualne przeszkody.</div></div></button>
-      <button class="opcja-card" onclick="selOpcja('telefon',this)"><span class="opcja-ico" style="color:#f59e0b">📐</span><div><div class="opcja-tit">Pomóż mi zmierzyć telefonem</div><div class="opcja-desc">Chcę użyć kartki A4 jako punktu odniesienia. Apka obliczy wymiary ze zdjęcia.</div></div></button>
+      <button class="opcja-card" onclick="selOpcja('pewny',this)"><span class="opcja-ico" style="color:#2a7a4a">✓</span><div><div class="opcja-tit">Pomiary są dokładne — wyślij projekt</div><div class="opcja-desc">Mam pewne wymiary, chcę przejść od razu do wysłania projektu.</div></div></button>
+      <button class="opcja-card" onclick="selOpcja('zdjecia',this)"><span class="opcja-ico" style="color:#2a5fa0">📷</span><div><div class="opcja-tit">Chcę dodać zdjęcia wnęki</div><div class="opcja-desc">Dołączę zdjęcia żeby widać było wnękę i ewentualne przeszkody (rury, gniazdka, skosy).</div></div></button>
     </div>
   </div>
   <div class="form-box">
@@ -490,8 +501,8 @@ const TYPY = [
 ]
 
 const KONSTR_OPCJE = [
-  {id:'obok', nazwa:'Standard — cokół z przodu',     opis:'Listwa cokołowa widoczna z przodu. Najczęściej stosowane.'},
-  {id:'na',   nazwa:'Zabudowa — cokół na bocznych',  opis:'Boki schowane, cokół ciągnie się po całej szerokości wnęki. Szafa wygląda jak element ściany.'},
+  {id:'obok', nazwa:'Standard',          opis:'Boki szafy na całą wysokość wnęki — cokół między ściankami szafy.'},
+  {id:'na',   nazwa:'Zabudowa — boki na cokole', opis:'Szafa usadowiona na cokole — boki skrócone, cokół ciągnie się po całej szerokości wnęki.'},
 ]
 
 const IKONY = {
@@ -565,7 +576,7 @@ const STAWKI = {
 let stan = {
   krok:1, typ:null, konstr:'obok', hdf:'brak',
   szer:'', wys:'', gl:'', scianyRowne:true,
-  sekcje:[{id:1,auto:true,szer:null,el:[{id:1,t:'drazek'},{id:2,t:'polka'},{id:3,t:'polka'}],front:'brak'}],
+  sekcje:[{id:1,auto:true,szer:null,el:[{id:1,t:'drazek',wys:null,etykieta:''},{id:2,t:'polka',wys:null,etykieta:''},{id:3,t:'polka',wys:null,etykieta:''}],front:'brak'}],
   material:null, opcjaWysylki:null,
 }
 let idCnt = 100
@@ -701,7 +712,10 @@ function zmienSekcje(d){
   if(n<1||n>6) return
   if(d>0){
     idCnt++
-    stan.sekcje.push({id:idCnt,auto:true,szer:null,el:[{id:idCnt*10,t:'polka'},{id:idCnt*10+1,t:'drazek'}],front:'brak'})
+    stan.sekcje.push({id:idCnt,auto:true,szer:null,el:[
+      {id:idCnt*10,t:'polka',wys:null,etykieta:''},
+      {id:idCnt*10+1,t:'drazek',wys:null,etykieta:''}
+    ],front:'brak'})
   } else {
     stan.sekcje.pop()
   }
@@ -710,7 +724,7 @@ function zmienSekcje(d){
 }
 
 function zastosujPreset(els){
-  stan.sekcje = stan.sekcje.map(s=>({...s,el:els.map((e,i)=>({id:idCnt++,t:e.t}))}))
+  stan.sekcje = stan.sekcje.map(s=>({...s,el:els.map((e,i)=>({id:idCnt++,t:e.t,wys:null,etykieta:''}))}))
   renderSekcje()
   rysujCanvas('canvas2d')
 }
@@ -724,12 +738,46 @@ function autoSzer(){
   return nAuto>0 ? Math.floor((prz-fix)/nAuto) : 0
 }
 
+// Domyślne sugerowane wysokości wg etykiety
+const ETYKIETY = [
+  {id:'',         nazwa:'— bez etykiety —', wys:null},
+  {id:'dlugie',   nazwa:'Długie ubrania',    wys:1600},
+  {id:'krotkie',  nazwa:'Krótkie ubrania',   wys:1000},
+  {id:'buty',     nazwa:'Buty',              wys:300},
+  {id:'polki',    nazwa:'Półki na ubrania',  wys:400},
+  {id:'szuflady', nazwa:'Strefa szuflad',    wys:600},
+  {id:'aksesoria',nazwa:'Akcesoria / torebki',wys:500},
+]
+
+function autoWys(sek){
+  // Wolna przestrzeń = wysokość mebla - grubości płyt między elementami
+  const H = stan.wys || 2500
+  const G = 18
+  const n = sek.el.length
+  if(n === 0) return 0
+  // Odejmij grubości półek-separatorów między strefami
+  const zajete_plyty = (n - 1) * G
+  const wolna = H - zajete_plyty
+  const fixH = sek.el.filter(e=>e.wys).reduce((a,e)=>a+(e.wys||0),0)
+  const nAuto = sek.el.filter(e=>!e.wys).length
+  return nAuto > 0 ? Math.floor((wolna - fixH) / nAuto) : 0
+}
+
+function sumaWys(sek){
+  const H = stan.wys || 2500
+  const G = 18
+  const n = sek.el.length
+  const zajete_plyty = (n - 1) * G
+  const as = autoWys(sek)
+  return sek.el.reduce((a,e)=>a+(e.wys||as),0) + zajete_plyty
+}
+
 function renderSekcje(){
   document.getElementById('sek-count').textContent = stan.sekcje.length
   document.getElementById('sek-minus').disabled = stan.sekcje.length<=1
   document.getElementById('sek-plus').disabled = stan.sekcje.length>=6
 
-  // pasek
+  // pasek szerokości
   const W = stan.szer||1700
   const as = autoSzer()
   const pasek = document.getElementById('sek-pasek')
@@ -739,24 +787,69 @@ function renderSekcje(){
     return `<div class="sek-blok" style="width:${Math.max(pct,5)}%">${sw>0?sw+' mm':''}</div>`
   }).join('')
 
-  // lista
+  // lista sekcji
   const lista = document.getElementById('sekcje-lista')
   const dn = {polka:'Półka',szuflada:'Szuflada',drazek:'Drążek'}
   const ico = {polka:'─',szuflada:'▭',drazek:'|'}
+  const H = stan.wys || 2500
+
   lista.innerHTML = stan.sekcje.map((sek,si)=>{
     const sw = sek.auto ? as : (sek.szer||as)
-    const els = sek.el.map((el,ei)=>`
-      <div class="el-item">
-        <span class="el-ico">${ico[el.t]||'?'}</span>
-        <span class="el-name">${dn[el.t]||el.t}</span>
-        <div class="el-acts">
-          <button class="btn-icon" onclick="przesunEl(${si},${ei},-1)" ${ei===0?'disabled':''}title="W górę">↑</button>
-          <button class="btn-icon" onclick="przesunEl(${si},${ei},1)" ${ei===sek.el.length-1?'disabled':''}title="W dół">↓</button>
-          <button class="btn-icon btn-del" onclick="usunEl(${si},${ei})" title="Usuń">×</button>
+    const aWys = autoWys(sek)
+    const suma = sumaWys(sek)
+    const diff = H - suma
+    const diffTxt = diff === 0
+      ? `<span style="color:var(--green);font-size:11px">✓ Suma: ${suma} mm</span>`
+      : diff > 0
+        ? `<span style="color:var(--gray-500);font-size:11px">Wolne: ${diff} mm (auto wypełni)</span>`
+        : `<span style="color:var(--red);font-size:11px">⚠ Przekroczone o ${Math.abs(diff)} mm</span>`
+
+    const els = sek.el.map((el,ei)=>{
+      const wysAuto = aWys
+      const wysVal = el.wys || ''
+      const placeholder = `auto: ${wysAuto} mm`
+      const etykietaOpts = ETYKIETY.map(e=>
+        `<option value="${e.id}" ${el.etykieta===e.id?'selected':''}>${e.nazwa}</option>`
+      ).join('')
+      return `
+      <div class="el-item el-item-tall">
+        <div class="el-item-top">
+          <span class="el-ico">${ico[el.t]||'?'}</span>
+          <span class="el-name">${dn[el.t]||el.t}</span>
+          <div class="el-acts">
+            <button class="btn-icon" onclick="przesunEl(${si},${ei},-1)" ${ei===0?'disabled':''}title="W górę">↑</button>
+            <button class="btn-icon" onclick="przesunEl(${si},${ei},1)" ${ei===sek.el.length-1?'disabled':''}title="W dół">↓</button>
+            <button class="btn-icon btn-del" onclick="usunEl(${si},${ei})" title="Usuń">×</button>
+          </div>
         </div>
-      </div>`).join('')
+        <div class="el-item-bottom">
+          <div class="el-wys-row">
+            <div class="el-wys-field">
+              <label class="el-wys-label">Wysokość strefy</label>
+              <div style="display:flex;gap:6px;align-items:center">
+                <input type="number" class="el-wys-inp" placeholder="${placeholder}"
+                  value="${wysVal}" min="50" max="${H}"
+                  onchange="setElWys(${si},${ei},this.value)"
+                  style="${!el.wys?'color:var(--gray-400)':''}"/>
+                ${el.wys ? `<button class="btn-clear-wys" onclick="setElWys(${si},${ei},'')" title="Resetuj do auto">↺</button>` : ''}
+              </div>
+            </div>
+            <div class="el-wys-field">
+              <label class="el-wys-label">Etykieta</label>
+              <select class="el-etykieta-sel" onchange="setElEtykieta(${si},${ei},this.value)">
+                ${etykietaOpts}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>`
+    }).join('')
+
     return `<div class="sekcja-card">
-      <div class="sekcja-head"><span class="sekcja-name">Sekcja ${si+1}</span><span class="sekcja-szer">${sw>0?sw+' mm':'—'}</span></div>
+      <div class="sekcja-head">
+        <span class="sekcja-name">Sekcja ${si+1}</span>
+        <span class="sekcja-szer">${sw>0?sw+' mm':'—'}</span>
+      </div>
       <div style="margin-bottom:.75rem">
         <div class="el-label">Szerokość sekcji (mm)</div>
         <div class="sek-szer-row">
@@ -764,7 +857,10 @@ function renderSekcje(){
           <button class="btn-auto${sek.auto?' on':''}" onclick="toggleAuto(${si})">${sek.auto?'Auto ✓':'Auto'}</button>
         </div>
       </div>
-      <div class="el-label">Elementy sekcji (${sek.el.length})</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div class="el-label">Elementy sekcji (${sek.el.length})</div>
+        ${diffTxt}
+      </div>
       <div class="el-lista">${els}</div>
       <div class="dodaj-box">
         <div class="dodaj-box-label">Dodaj element</div>
@@ -786,12 +882,35 @@ function renderSekcje(){
   }).join('')
 }
 
-function dodajEl(si,t){idCnt++;stan.sekcje[si].el.push({id:idCnt,t});renderSekcje();rysujCanvas('canvas2d')}
+function dodajEl(si,t){
+  idCnt++
+  stan.sekcje[si].el.push({id:idCnt,t,wys:null,etykieta:''})
+  renderSekcje()
+  rysujCanvas('canvas2d')
+}
 function usunEl(si,ei){stan.sekcje[si].el.splice(ei,1);renderSekcje();rysujCanvas('canvas2d')}
 function przesunEl(si,ei,d){const el=stan.sekcje[si].el;[el[ei],el[ei+d]]=[el[ei+d],el[ei]];renderSekcje();rysujCanvas('canvas2d')}
 function setSekSzer(si,v){stan.sekcje[si].szer=parseInt(v)||null;renderSekcje();rysujCanvas('canvas2d')}
 function setSekFront(si,v){stan.sekcje[si].front=v;rysujCanvas('canvas2d')}
 function toggleAuto(si){stan.sekcje[si].auto=!stan.sekcje[si].auto;renderSekcje();rysujCanvas('canvas2d')}
+
+function setElWys(si,ei,v){
+  const val = parseInt(v)
+  stan.sekcje[si].el[ei].wys = val > 0 ? val : null
+  renderSekcje()
+  rysujCanvas('canvas2d')
+}
+
+function setElEtykieta(si,ei,v){
+  stan.sekcje[si].el[ei].etykieta = v
+  // Jeśli wybrano etykietę z sugerowaną wysokością i element jest na auto — zaproponuj
+  const et = ETYKIETY.find(e=>e.id===v)
+  if(et && et.wys && !stan.sekcje[si].el[ei].wys){
+    stan.sekcje[si].el[ei].wys = et.wys
+  }
+  renderSekcje()
+  rysujCanvas('canvas2d')
+}
 
 // ===================== CANVAS 2D =====================
 function rysujCanvas(canvasId){
@@ -835,9 +954,17 @@ function rysujCanvas(canvasId){
     const iT=oy+gS, iH=rH-2*gS
     if(si<n-1){ctx.fillStyle=kolKorpus;ctx.fillRect(xC+swpx,oy+gS,gS,rH-2*gS)}
     if(sek.el.length===0){xC+=swpx+gS;return}
-    const eH=Math.floor(iH/sek.el.length)
+    // Oblicz rzeczywiste wysokości stref w pikselach
+    const aWysMm = autoWys(sek)
+    const totalMm = sek.el.reduce((a,e)=>a+(e.wys||aWysMm),0)
+    const scaledTotal = totalMm * sc
+    let eyCursor = iT
+
     sek.el.forEach((el,ei)=>{
-      const eyT=iT+ei*eH, eyH=ei===sek.el.length-1?iH-ei*eH:eH
+      const elMm = el.wys || aWysMm
+      const eyH = Math.round(elMm * sc)
+      const eyT = eyCursor
+      eyCursor += eyH + Math.round(18*sc) // grubość płyty separatora
       if(el.t==='polka'){
         ctx.fillStyle=kolPolka;ctx.fillRect(xC+1,eyT+eyH-gS,swpx-1,gS)
         ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=.5;ctx.setLineDash([3,3])
