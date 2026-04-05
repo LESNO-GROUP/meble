@@ -428,8 +428,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
   </div>
 
   <div class="podglad-wrap">
-    <div class="podglad-title">Podgląd schematyczny</div>
-    <canvas id="canvas2d-sum" width="720" height="400"></canvas>
+    <div class="podglad-title">Podgląd z wymiarami</div>
+    <canvas id="canvas2d-sum" width="900" height="560"></canvas>
+    <div class="podglad-legenda">
+      <div class="leg-item"><span class="leg-dot" style="background:#9c7a45"></span>Drążek</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#d4b896"></span>Półka</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#ede4d3"></span>Szuflada</div>
+    </div>
   </div>
   <div class="opcje-box">
     <div class="opcje-title">Ostatni krok przed wysłaniem</div>
@@ -621,7 +626,7 @@ function idDoKroku(nr){
     setTimeout(()=>rysujCanvas('canvas2d'), 50)
   }
   if(nr===4){renderDekory()}
-  if(nr===5){renderPodsumowanie();rysujCanvas('canvas2d-sum')}
+  if(nr===5){renderPodsumowanie();setTimeout(()=>rysujCanvasSummary(),50)}
 }
 
 // ===================== KROK 1 =====================
@@ -739,15 +744,27 @@ function autoSzer(){
 }
 
 // Domyślne sugerowane wysokości wg etykiety
-const ETYKIETY = [
-  {id:'',         nazwa:'— bez etykiety —', wys:null},
-  {id:'dlugie',   nazwa:'Długie ubrania',    wys:1600},
-  {id:'krotkie',  nazwa:'Krótkie ubrania',   wys:1000},
-  {id:'buty',     nazwa:'Buty',              wys:300},
-  {id:'polki',    nazwa:'Półki na ubrania',  wys:400},
-  {id:'szuflady', nazwa:'Strefa szuflad',    wys:600},
-  {id:'aksesoria',nazwa:'Akcesoria / torebki',wys:500},
-]
+// Etykiety pogrupowane per typ elementu
+const ETYKIETY = {
+  drazek: [
+    {id:'',        nazwa:'— bez etykiety —',          wys:null},
+    {id:'dlugie',  nazwa:'Ubrania długie (sukienki)',  wys:1600},
+    {id:'krotkie', nazwa:'Ubrania krótkie (koszule)',  wys:1000},
+  ],
+  polka: [
+    {id:'',        nazwa:'— bez etykiety —',           wys:null},
+    {id:'buty',    nazwa:'Buty',                       wys:300},
+    {id:'ubrania', nazwa:'Ubrania złożone',            wys:350},
+    {id:'torebki', nazwa:'Torebki / akcesoria',        wys:400},
+  ],
+  szuflada: [
+    {id:'',           nazwa:'— bez etykiety —',        wys:null},
+    {id:'bizuteria',  nazwa:'Biżuteria / akcesoria',   wys:125},
+    {id:'bielizna',   nazwa:'Bielizna',                wys:150},
+  ],
+}
+
+function etykietyDlaTypu(t){ return ETYKIETY[t] || ETYKIETY.polka }
 
 function autoWys(sek){
   // Wolna przestrzeń = wysokość mebla - grubości płyt między elementami
@@ -808,7 +825,7 @@ function renderSekcje(){
       const wysAuto = aWys
       const wysVal = el.wys || ''
       const placeholder = `auto: ${wysAuto} mm`
-      const etykietaOpts = ETYKIETY.map(e=>
+      const etykietaOpts = etykietyDlaTypu(el.t).map(e=>
         `<option value="${e.id}" ${el.etykieta===e.id?'selected':''}>${e.nazwa}</option>`
       ).join('')
       return `
@@ -903,8 +920,7 @@ function setElWys(si,ei,v){
 
 function setElEtykieta(si,ei,v){
   stan.sekcje[si].el[ei].etykieta = v
-  // Jeśli wybrano etykietę z sugerowaną wysokością i element jest na auto — zaproponuj
-  const et = ETYKIETY.find(e=>e.id===v)
+  const et = etykietyDlaTypu(stan.sekcje[si].el[ei].t).find(e=>e.id===v)
   if(et && et.wys && !stan.sekcje[si].el[ei].wys){
     stan.sekcje[si].el[ei].wys = et.wys
   }
@@ -1210,6 +1226,186 @@ function wyslijProjekt(){
     document.querySelector('.stepper-wrap').style.display='none'
     window.scrollTo({top:0,behavior:'smooth'})
   },1200)
+}
+
+// ===================== CANVAS PODSUMOWANIE =====================
+function rysujCanvasSummary(){
+  const cv = document.getElementById('canvas2d-sum')
+  if(!cv) return
+  const ctx = cv.getContext('2d')
+  const Wmm = stan.szer||1700, Hmm = stan.wys||2500, G=18
+  const PAD_L=80, PAD_R=180, PAD_T=60, PAD_B=40
+  const CW=cv.width-PAD_L-PAD_R, CH=cv.height-PAD_T-PAD_B
+  const sc = Math.min(CW/Wmm, CH/Hmm)
+  const rW=Math.round(Wmm*sc), rH=Math.round(Hmm*sc)
+  const ox=PAD_L+Math.round((CW-rW)/2), oy=PAD_T
+  const gS=Math.max(2,Math.round(G*sc))
+
+  ctx.clearRect(0,0,cv.width,cv.height)
+
+  const dekor = DEKORY.find(d=>d.id===stan.material)
+  const kolKorpus = dekor ? dekor.kol : '#c4a882'
+  const kolPlecy  = dekor ? blendKolor(dekor.kol,'#ffffff',0.55) : '#f0eae0'
+  const kolPolka  = dekor ? blendKolor(dekor.kol,'#ffffff',0.35) : '#d4b896'
+  const kolDrazek = dekor ? ciemniejszy(dekor.kol,0.35) : '#9c7a45'
+  const kolSzufl  = dekor ? blendKolor(dekor.kol,'#ffffff',0.6) : '#ede4d3'
+
+  // Plecy i korpus
+  ctx.fillStyle=kolPlecy; ctx.fillRect(ox+gS,oy+gS,rW-2*gS,rH-gS)
+  ctx.fillStyle=kolKorpus
+  ctx.fillRect(ox,oy,gS,rH); ctx.fillRect(ox+rW-gS,oy,gS,rH)
+  ctx.fillRect(ox,oy,rW,gS); ctx.fillRect(ox,oy+rH-gS,rW,gS)
+
+  const n=stan.sekcje.length
+  const as=autoSzer()
+  let xC=ox+gS
+
+  // Słownik etykiet na skrót
+  const eLab = {
+    dlugie:'Długie ubrania',krotkie:'Krótkie ubrania',
+    buty:'Buty',ubrania:'Ubrania',torebki:'Torebki',
+    bizuteria:'Biżuteria',bielizna:'Bielizna',
+  }
+
+  // Zbierz wszystkie wymiary stref do narysowania po prawej
+  const annotations = []
+
+  stan.sekcje.forEach((sek,si)=>{
+    const sw=(sek.auto?as:(sek.szer||as))
+    const swpx=Math.round(sw*sc)
+    const iT=oy+gS, iH=rH-2*gS
+    if(si<n-1){ctx.fillStyle=kolKorpus;ctx.fillRect(xC+swpx,oy+gS,gS,rH-2*gS)}
+
+    if(sek.el.length===0){xC+=swpx+gS;return}
+
+    const aWysMm=autoWys(sek)
+    let eyCursor=iT
+
+    sek.el.forEach((el,ei)=>{
+      const elMm=el.wys||aWysMm
+      const eyH=Math.round(elMm*sc)
+      const eyT=eyCursor
+      eyCursor+=eyH+gS
+
+      // Rysuj element
+      if(el.t==='polka'){
+        ctx.fillStyle=kolPolka; ctx.fillRect(xC+1,eyT+eyH-gS,swpx-1,gS)
+        ctx.strokeStyle='rgba(0,0,0,.08)';ctx.lineWidth=.5;ctx.setLineDash([3,3])
+        ctx.beginPath();ctx.moveTo(xC+4,eyT);ctx.lineTo(xC+swpx-2,eyT);ctx.stroke()
+        ctx.setLineDash([])
+      } else if(el.t==='drazek'){
+        const dy=eyT+eyH*.42
+        ctx.strokeStyle=kolDrazek;ctx.lineWidth=2
+        ctx.beginPath();ctx.moveTo(xC+6,dy);ctx.lineTo(xC+swpx-4,dy);ctx.stroke()
+        ;[xC+10,xC+swpx-10].forEach(hx=>{
+          ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(hx,oy+gS+4);ctx.lineTo(hx,dy);ctx.stroke()
+          ctx.beginPath();ctx.arc(hx,oy+gS+3,2,0,Math.PI*2);ctx.fillStyle=kolDrazek;ctx.fill()
+        })
+        const hc=Math.max(1,Math.floor(sw/250)),step=swpx/(hc+1)
+        ctx.strokeStyle=kolDrazek+'88';ctx.lineWidth=1
+        for(let h=1;h<=hc;h++){const hx=xC+step*h;ctx.beginPath();ctx.arc(hx,dy+5,4,Math.PI*.1,Math.PI*.9);ctx.stroke()}
+      } else if(el.t==='szuflada'){
+        const m=3,sh=eyH-6,sy=eyT+3
+        ctx.fillStyle=kolSzufl;ctx.fillRect(xC+m,sy,swpx-m*2,sh)
+        ctx.fillStyle=kolKorpus;ctx.fillRect(xC+m,sy,swpx-m*2,Math.min(8,sh*.3))
+        const mw=Math.min(30,swpx*.35),mx=xC+(swpx-mw)/2,my=sy+sh/2-1
+        ctx.fillStyle=kolDrazek;ctx.fillRect(mx,my,mw,3)
+        ctx.strokeStyle=kolKorpus;ctx.lineWidth=.5;ctx.strokeRect(xC+m,sy,swpx-m*2,sh)
+      }
+
+      // Zbierz annotację dla tej strefy (tylko pierwsza sekcja po lewej)
+      if(si===0){
+        const label = el.etykieta ? (eLab[el.etykieta]||el.etykieta) : {polka:'Półka',drazek:'Drążek',szuflada:'Szuflada'}[el.t]
+        annotations.push({yT:eyT, yH:eyH, mm:elMm, label})
+      }
+    })
+    xC+=swpx+gS
+  })
+
+  // Fronty przesuwne
+  if(stan.sekcje.some(s=>s.front==='przesuwne')){
+    ctx.strokeStyle=kolDrazek;ctx.lineWidth=1.5;ctx.setLineDash([5,4])
+    ctx.strokeRect(ox+gS+2,oy+gS+2,rW-gS*2-4,rH-gS*2-4)
+    ctx.setLineDash([])
+  }
+
+  // ── WYMIARY GŁÓWNE (góra i lewo) ──
+  const fmt=v=>v>=1000?`${(v/1000).toFixed(2).replace(/\.?0+$/,'')} m`:`${v} mm`
+  ctx.font='bold 12px DM Sans,system-ui,sans-serif'
+  ctx.fillStyle='#4a4a42'
+  ctx.strokeStyle='#9c9990'
+  ctx.lineWidth=1
+  ctx.setLineDash([])
+  ctx.textAlign='center'; ctx.textBaseline='middle'
+
+  // Szerokość — góra
+  const ayG=oy-36
+  const arrowLen=6
+  // linia
+  ctx.beginPath();ctx.moveTo(ox,ayG);ctx.lineTo(ox+rW,ayG);ctx.stroke()
+  // groty
+  ;[[ox,1],[ox+rW,-1]].forEach(([px,dir])=>{
+    ctx.beginPath();ctx.moveTo(px,ayG)
+    ctx.lineTo(px+dir*arrowLen,ayG-4);ctx.lineTo(px+dir*arrowLen,ayG+4)
+    ctx.fillStyle='#9c9990';ctx.fill()
+  })
+  // tick lines
+  ctx.beginPath();ctx.moveTo(ox,ayG-8);ctx.lineTo(ox,oy);ctx.stroke()
+  ctx.beginPath();ctx.moveTo(ox+rW,ayG-8);ctx.lineTo(ox+rW,oy);ctx.stroke()
+  // tekst
+  ctx.fillStyle='#1a1a16';ctx.font='bold 13px DM Sans,system-ui,sans-serif'
+  ctx.fillText(fmt(Wmm),ox+rW/2,ayG-16)
+
+  // Wysokość — lewa strona
+  const axL=ox-50
+  ctx.beginPath();ctx.moveTo(axL,oy);ctx.lineTo(axL,oy+rH);ctx.stroke()
+  ;[[oy,1],[oy+rH,-1]].forEach(([py,dir])=>{
+    ctx.beginPath();ctx.moveTo(axL,py)
+    ctx.lineTo(axL-4,py+dir*arrowLen);ctx.lineTo(axL+4,py+dir*arrowLen)
+    ctx.fillStyle='#9c9990';ctx.fill()
+  })
+  ctx.beginPath();ctx.moveTo(axL+8,oy);ctx.lineTo(ox,oy);ctx.stroke()
+  ctx.beginPath();ctx.moveTo(axL+8,oy+rH);ctx.lineTo(ox,oy+rH);ctx.stroke()
+  ctx.save()
+  ctx.translate(axL-16,oy+rH/2)
+  ctx.rotate(-Math.PI/2)
+  ctx.fillStyle='#1a1a16';ctx.font='bold 13px DM Sans,system-ui,sans-serif'
+  ctx.fillText(fmt(Hmm),0,0)
+  ctx.restore()
+
+  // ── WYMIARY STREF (prawa strona) ──
+  const axR = ox+rW+16
+  const lineX = axR+8
+  const textX = axR+14
+
+  ctx.font='11px DM Sans,system-ui,sans-serif'
+  ctx.textAlign='left'
+
+  annotations.forEach((ann,i)=>{
+    const midY = ann.yT + ann.yH/2
+    const y1 = ann.yT+2, y2 = ann.yT+ann.yH-2
+
+    // Nawias klamrowy (prosta linia z tick-ami)
+    ctx.strokeStyle='#b8a898';ctx.lineWidth=.8;ctx.setLineDash([])
+    ctx.beginPath();ctx.moveTo(lineX,y1);ctx.lineTo(lineX,y2);ctx.stroke()
+    ;[y1,y2].forEach(py=>{
+      ctx.beginPath();ctx.moveTo(lineX,py);ctx.lineTo(lineX+5,py);ctx.stroke()
+    })
+    // linia pozioma do tekstu
+    ctx.beginPath();ctx.moveTo(lineX,midY);ctx.lineTo(textX+2,midY);ctx.stroke()
+
+    // Wymiar w mm
+    ctx.fillStyle='#1a1a16';ctx.font='bold 12px DM Sans,system-ui,sans-serif'
+    ctx.fillText(`${ann.mm} mm`,textX+5,midY-8)
+    // Etykieta
+    ctx.fillStyle='#6b6b62';ctx.font='11px DM Sans,system-ui,sans-serif'
+    ctx.fillText(ann.label,textX+5,midY+8)
+  })
+
+  // Głębokość — mała etykieta w rogu
+  ctx.fillStyle='#9c9990';ctx.font='11px DM Sans,system-ui,sans-serif'
+  ctx.textAlign='right'
+  ctx.fillText(`głęb. ${stan.gl||'—'} mm`,ox+rW,oy+rH+22)
 }
 
 // ===================== INIT =====================
