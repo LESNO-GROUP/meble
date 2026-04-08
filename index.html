@@ -519,63 +519,81 @@ const IKONY = {
 }
 
 const DEKORY = [
-  {id:'K101',nazwa:'Biały alpejski',kat:'Jednobarwny',kol:'#F8F6F0',obr:'ten sam dekor'},
-  {id:'K110',nazwa:'Biały',kat:'Jednobarwny',kol:'#F2EFEA',obr:'ten sam dekor'},
-  {id:'K112',nazwa:'Szary stalowy',kat:'Jednobarwny',kol:'#B8BFC6',obr:'ten sam dekor'},
-  {id:'K162',nazwa:'Szary ciemny',kat:'Jednobarwny',kol:'#4A4A4A',obr:'ten sam dekor'},
-  {id:'K164',nazwa:'Antracyt',kat:'Jednobarwny',kol:'#383838',obr:'ten sam dekor'},
-  {id:'K166',nazwa:'Czarny grafit',kat:'Jednobarwny',kol:'#232323',obr:'ten sam dekor'},
-  {id:'K190',nazwa:'Czarny',kat:'Jednobarwny',kol:'#101010',obr:'ten sam dekor'},
-  {id:'K191',nazwa:'Biały kremowy',kat:'Jednobarwny',kol:'#E8E4DA',obr:'ten sam dekor'},
-  {id:'K197',nazwa:'Szary szałwia',kat:'Jednobarwny',kol:'#8E9B8B',obr:'ten sam dekor'},
-  {id:'K244',nazwa:'Zielony butelkowy',kat:'Jednobarwny',kol:'#2C5545',obr:'ten sam dekor'},
-  {id:'K301',nazwa:'Beżowy piaskowy',kat:'Jednobarwny',kol:'#B8956A',obr:'ten sam dekor'},
-  {id:'K514',nazwa:'Kremowy jasny',kat:'Jednobarwny',kol:'#F5F0DC',obr:'ten sam dekor'},
-  {id:'K515',nazwa:'Kremowy ciepły',kat:'Jednobarwny',kol:'#EDE4C4',obr:'ten sam dekor'},
-  {id:'K522',nazwa:'Beżowy naturalny',kat:'Jednobarwny',kol:'#D4C4A0',obr:'ten sam dekor'},
-  {id:'K018',nazwa:'Różowy pudrowy',kat:'Jednobarwny',kol:'#E8C4C0',obr:'ten sam dekor'},
-  {id:'K020',nazwa:'Granatowy',kat:'Jednobarwny',kol:'#1A2F5A',obr:'ten sam dekor'},
-  {id:'K016',nazwa:'Zielony leśny',kat:'Jednobarwny',kol:'#4A6741',obr:'ten sam dekor'},
-  {id:'K019',nazwa:'Terakota',kat:'Jednobarwny',kol:'#C4614A',obr:'ten sam dekor'},
-  {id:'C001',nazwa:'Dąb Halifax naturalny',kat:'Drewno',kol:'#C8A870',obr:'ABS dąb'},
-  {id:'C003',nazwa:'Dąb sonoma naturalny',kat:'Drewno',kol:'#C4985A',obr:'ABS dąb'},
-  {id:'C004',nazwa:'Dąb sonoma truflowy',kat:'Drewno',kol:'#8A7060',obr:'ABS brązowy'},
-  {id:'C007',nazwa:'Orzech sorrento ciemny',kat:'Drewno',kol:'#5A4030',obr:'ABS orzech'},
-  {id:'C008',nazwa:'Orzech sorrento jasny',kat:'Drewno',kol:'#A07850',obr:'ABS orzech'},
-  {id:'C002',nazwa:'Dąb Halifax antracyt',kat:'Drewno',kol:'#4A4038',obr:'ABS ciemny'},
-  {id:'C041',nazwa:'Beton jasny',kat:'Drewno',kol:'#C8C4BE',obr:'ABS szary'},
-  {id:'C042',nazwa:'Beton ciemny',kat:'Drewno',kol:'#888480',obr:'ABS szary'},
-  {id:'C017',nazwa:'Wenge afrykańskie',kat:'Drewno',kol:'#3A2018',obr:'ABS ciemny'},
-  {id:'C009',nazwa:'Buk natural',kat:'Drewno',kol:'#D4A870',obr:'ABS buk'},
-  {id:'C021',nazwa:'Klon kanadyjski',kat:'Drewno',kol:'#D8B878',obr:'ABS jasny'},
-  {id:'C010',nazwa:'Wiśnia bagienna',kat:'Drewno',kol:'#8A4030',obr:'ABS wiśnia'},
+  // Jednobarwne — Color 18mm (44,12 zł/m²)
+  {id:'0110SM', nazwa:'Biały Korpusowy',        kat:'Jednobarwny', kol:'#F5F2EC', cena_m2:37.99},
+  {id:'8685SM', nazwa:'Biel Alpejska',           kat:'Jednobarwny', kol:'#F8F4EE', cena_m2:38.41},
+  {id:'W980',   nazwa:'Biały',                   kat:'Jednobarwny', kol:'#F2EFEA', cena_m2:44.12},
+  {id:'0101PE', nazwa:'Biały Arktyczny',          kat:'Jednobarwny', kol:'#FAFAFA', cena_m2:44.12},
+  {id:'U702',   nazwa:'Biały Bawełniany',        kat:'Jednobarwny', kol:'#EDE8DD', cena_m2:44.12},
+  {id:'0112PE', nazwa:'Jasny Szary',             kat:'Jednobarwny', kol:'#C8CDD4', cena_m2:38.62},
+  {id:'U961',   nazwa:'Szary Platynowy',         kat:'Jednobarwny', kol:'#B0B5BC', cena_m2:44.12},
+  {id:'U763',   nazwa:'Szary Betonowy',          kat:'Jednobarwny', kol:'#8C9098', cena_m2:44.12},
+  {id:'U727',   nazwa:'Szary Piaskowy',          kat:'Jednobarwny', kol:'#A8A49C', cena_m2:44.12},
+  {id:'0164PE', nazwa:'Antracyt',                kat:'Jednobarwny', kol:'#383838', cena_m2:37.99},
+  {id:'0162PE', nazwa:'Grafit Szary',            kat:'Jednobarwny', kol:'#4A4A4A', cena_m2:45.41},
+  {id:'0190PE', nazwa:'Czarny',                  kat:'Jednobarwny', kol:'#101010', cena_m2:38.41},
+  {id:'U999',   nazwa:'Czarny Głęboki',          kat:'Jednobarwny', kol:'#0C0C0C', cena_m2:44.12},
+  {id:'U818',   nazwa:'Brązowy Czekoladowy',     kat:'Jednobarwny', kol:'#4A3020', cena_m2:44.12},
+  {id:'U726',   nazwa:'Zielony Liściasty',       kat:'Jednobarwny', kol:'#4A6741', cena_m2:44.12},
+  {id:'U311',   nazwa:'Czerwony Korund',         kat:'Jednobarwny', kol:'#C4614A', cena_m2:44.12},
+  {id:'U522',   nazwa:'Niebieski Ocean',         kat:'Jednobarwny', kol:'#1A2F5A', cena_m2:44.12},
+  // Standard 18mm (52,42 zł/m²) — popularne dekory drewniane
+  {id:'K097PW', nazwa:'Dąb Halifax Naturalny',   kat:'Drewno',      kol:'#C8A870', cena_m2:52.42},
+  {id:'K098PW', nazwa:'Dąb Halifax Tabak',       kat:'Drewno',      kol:'#8A7060', cena_m2:52.42},
+  {id:'K099PW', nazwa:'Dąb Halifax Biały',       kat:'Drewno',      kol:'#E0D8C8', cena_m2:52.42},
+  {id:'K090PW', nazwa:'Dąb Nagano',              kat:'Drewno',      kol:'#C4985A', cena_m2:52.42},
+  {id:'K091PW', nazwa:'Dąb Nagano Ciemny',       kat:'Drewno',      kol:'#7A6040', cena_m2:52.42},
+  {id:'K092PW', nazwa:'Dąb Nagano Biały',        kat:'Drewno',      kol:'#DDD4C0', cena_m2:52.42},
+  {id:'3025SN', nazwa:'Dąb Sonoma Jasny',        kat:'Drewno',      kol:'#D4A860', cena_m2:52.42},
+  {id:'3058SN', nazwa:'Dąb Sonoma Ciemny',       kat:'Drewno',      kol:'#8A6A44', cena_m2:52.42},
+  {id:'K081PW', nazwa:'Dąb Craft Złoty',         kat:'Drewno',      kol:'#C89850', cena_m2:52.42},
+  {id:'K082PW', nazwa:'Dąb Burbon',              kat:'Drewno',      kol:'#A07848', cena_m2:52.42},
+  {id:'K094PW', nazwa:'Dąb Grandson Naturalny',  kat:'Drewno',      kol:'#B89060', cena_m2:52.42},
+  // Contempo 18mm (57,93 zł/m²)
+  {id:'K025PE', nazwa:'Beton Ciemny',            kat:'Kamień/Beton', kol:'#6C6C6C', cena_m2:57.93},
+  {id:'K026PE', nazwa:'Beton Jasny',             kat:'Kamień/Beton', kol:'#B0ACA8', cena_m2:57.93},
+  {id:'K087PW', nazwa:'Orzech Rockford Ciemny',  kat:'Drewno',      kol:'#5A4030', cena_m2:57.93},
+  {id:'K086PW', nazwa:'Orzech Rockford Naturalny',kat:'Drewno',     kol:'#A07850', cena_m2:57.93},
+  // Harmony 18mm (65,79 zł/m²)
+  {id:'K211PE', nazwa:'Kamień Czarny',           kat:'Kamień/Beton', kol:'#2A2A2A', cena_m2:65.79},
+  {id:'K214PE', nazwa:'Kamień Szary Jasny',      kat:'Kamień/Beton', kol:'#C0BCBA', cena_m2:65.79},
+  {id:'K215SM', nazwa:'Marmur Calacatta',        kat:'Kamień/Beton', kol:'#F0EDE8', cena_m2:65.79},
+  // Emporio Skin (65,79 zł/m²)
+  {id:'K672PV', nazwa:'Emporio Skin Dąb Naturalny', kat:'Drewno',   kol:'#C4986A', cena_m2:65.79},
+  {id:'K678PV', nazwa:'Emporio Skin Dąb Czarny', kat:'Drewno',     kol:'#1A1410', cena_m2:65.79},
+  {id:'K679PV', nazwa:'Emporio Skin Dąb Biały',  kat:'Drewno',     kol:'#E8E0D0', cena_m2:65.79},
 ]
 
-const POPULARNE = ['K101','K110','K166','K164','C001','C003','K191','K197']
+const POPULARNE = ['0110SM','8685SM','W980','0164PE','0190PE','K097PW','3025SN','K025PE']
 
 // ============================================================
 // STAWKI — zmień te wartości na swoje
 // ============================================================
+// UWAGA: Ceny płyt = ceny HURTOWE Kronospan (bez narzutu)
+// Cena płyty dla wyceny brana jest z wybranego dekoru (DEKORY[].cena_m2)
+// Poniżej FALLBACK gdy brak dekoru lub jako domyślna:
 const STAWKI = {
-  plyta_m2:     150,   // zł netto / m² płyty 18mm Kronospan
-  hdf_m2:        60,   // zł netto / m² pleców HDF 3mm
+  plyta_m2:     52,    // zł / m² — fallback (Standard 18mm ~52 zł)
+  hdf_m2:       15,    // zł / m² — plecy HDF 3mm (cena hurtowa)
   obrzeze_mb:   2.0,   // zł / mb obrzeża ABS 2mm
-  odpad:        0.10,  // narzut na odpad przy cięciu (10%)
+  odpad:        0.10,  // 10% narzut na odpad przy cięciu
   // Akcesoria (GTV / ATM / REJS / Laguna)
   polka_szt:     10,   // zł — złączki, kołki
   szuflada_szt: 100,   // zł — prowadnice GTV Metabox
   drazek_szt:    30,   // zł — drążek + 2 uchwyty
   front_przesuwny_mb: 150, // zł / mb frontu przesuwnego (Laguna/Rejs)
   zawiasy_para:  10,   // zł / para zawiasów
-  // Robocizna: 100 zł/h × 0.5h na każdy m² płyty (cięcie + oklejanie)
+  // Robocizna
   robocizna_projekt: 200, // zł — projekt wykonawczy (stała kwota)
-  robocizna_h:      100, // zł / godzina robocizny
-  robocizna_h_per_m2: 0.5, // godzin na m² płyty
-  pakowanie:        150, // zł — pakowanie + dostawa
+  robocizna_h:      100,  // zł / godzina
+  robocizna_h_per_m2: 0.5, // godzin na m²
+  pakowanie:        150,  // zł — pakowanie + dostawa
   // Marża i podatek
-  marza: 0.30,          // 30% marża na materiałach i akcesoriach
-  vat:   0.23,          // 23% VAT
-  min_zamowienie: 1000, // zł netto minimum
+  // Materiały: marża = 0 (ceny hurtowe już z narzutem)
+  // Akcesoria: marża 20% (robocizna odrębna)
+  marza_akcesoria: 0.20,  // 20% na akcesoriach
+  vat:   0.23,
+  min_zamowienie: 1000,   // zł netto minimum
 }
 
 // ===================== STAN =====================
@@ -1183,21 +1201,25 @@ function obliczWycene(){
   }))
   if(stan.sekcje.some(s=>s.front==='przesuwne')) ak+=(stan.szer/1000)*STAWKI.front_przesuwny_mb
 
-  // Koszty materiałów
-  const koszt_plyta   = m2p * STAWKI.plyta_m2 * (1 + STAWKI.odpad)
+  // Cena płyty z wybranego dekoru (cena hurtowa — bez narzutu)
+  const dekor = DEKORY.find(d=>d.id===stan.material)
+  const cena_plyta_m2 = dekor?.cena_m2 || STAWKI.plyta_m2
+
+  // Koszty materiałów — bez marży (ceny hurtowe już zawierają narzut)
+  const koszt_plyta   = m2p * cena_plyta_m2 * (1 + STAWKI.odpad)
   const koszt_hdf     = m2h * STAWKI.hdf_m2
   const koszt_obrzeze = mb  * STAWKI.obrzeze_mb
   const koszt_mat     = koszt_plyta + koszt_hdf + koszt_obrzeze
 
-  // Robocizna: 100 zł/h × 0.5h na każdy m² płyty + projekt + pakowanie
+  // Robocizna
   const godz_cięcia = m2p * STAWKI.robocizna_h_per_m2
   const robocizna   = STAWKI.robocizna_projekt
                     + godz_cięcia * STAWKI.robocizna_h
                     + STAWKI.pakowanie
 
-  // Marża tylko na materiałach i akcesoriach
-  const netto_mat = (koszt_mat + ak) * (1 + STAWKI.marza)
-  const netto     = Math.max(netto_mat + robocizna, STAWKI.min_zamowienie)
+  // Akcesoria z małą marżą; materiały i robocizna — bez marży
+  const koszt_ak_z_marza = ak * (1 + STAWKI.marza_akcesoria)
+  const netto     = Math.max(koszt_mat + koszt_ak_z_marza + robocizna, STAWKI.min_zamowienie)
   const brutto    = Math.round(netto * (1 + STAWKI.vat))
   const ark       = Math.ceil(m2p*(1+STAWKI.odpad)/(2.8*2.07))
 
