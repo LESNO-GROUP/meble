@@ -3,7 +3,69 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Meble na wymiar — Konfigurator</title>
+
+<!-- SEO: Tytuł -->
+<title>Szafy wnękowe na wymiar — zaprojektuj i złóż sam | LESNO Meble</title>
+
+<!-- SEO: Podstawowe meta tagi -->
+<meta name="description" content="Zaprojektuj szafę wnękową, garderobę lub regał na wymiar w 5 minut. Otrzymujesz pocięte formatki Kronospan + instrukcję montażu — składasz sam w domu. Szybka realizacja 5–10 dni. Dostawa na terenie całej Polski."/>
+<meta name="keywords" content="szafy na wymiar, szafa wnękowa na wymiar, meble na wymiar DIY, formatki meblowe, garderoba na wymiar, szafa do zabudowy, meble na wymiar Katowice, meble na wymiar Śląsk, konfigurator szaf"/>
+<meta name="author" content="LESNO Meble"/>
+<meta name="robots" content="index, follow"/>
+<link rel="canonical" href="https://www.lesno-meble.pl/"/>
+
+<!-- SEO: Open Graph (Facebook, LinkedIn) -->
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://www.lesno-meble.pl/"/>
+<meta property="og:title" content="Szafy wnękowe na wymiar — zaprojektuj i złóż sam | LESNO Meble"/>
+<meta property="og:description" content="Konfigurator szaf na wymiar. Wybierz wymiary, układ i dekor — my tniemy, oklejamy i wysyłamy. Ty składasz sam. Realizacja 5–10 dni, dostawa cała Polska."/>
+<meta property="og:site_name" content="LESNO Meble"/>
+<meta property="og:locale" content="pl_PL"/>
+
+<!-- SEO: Twitter Card -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Szafy wnękowe na wymiar — zaprojektuj i złóż sam"/>
+<meta name="twitter:description" content="Konfigurator szaf na wymiar. Pocięte formatki + instrukcja. Składasz sam. Realizacja 5–10 dni."/>
+
+<!-- SEO: Dane strukturalne (Schema.org) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "LESNO Meble",
+  "description": "Producent mebli na wymiar. Szafy wnękowe, garderoby i regały na wymiar w systemie DIY — klient składa sam.",
+  "url": "https://www.lesno-meble.pl",
+  "email": "kontakt@lesno-meble.pl",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Polska"
+  },
+  "serviceType": ["Szafy na wymiar", "Garderoby na wymiar", "Regały na wymiar", "Meble DIY"],
+  "priceRange": "$$",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Meble na wymiar",
+    "itemListElement": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Szafa wnękowa na wymiar",
+          "description": "Szafa wnękowa zaprojektowana przez klienta, cięta i oklejana obrzeżem ABS, dostarczona jako gotowe formatki do samodzielnego montażu."
+        }
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Garderoba na wymiar",
+          "description": "Garderoba na wymiar z podziałem na strefy: drążki, półki, szuflady."
+        }
+      }
+    ]
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
@@ -1274,16 +1336,76 @@ function validateForm(){
 }
 
 function wyslijProjekt(){
-  const btn=document.getElementById('btn-wyslij')
-  btn.textContent='Wysyłanie...'
-  btn.disabled=true
-  setTimeout(()=>{
-    document.querySelectorAll('.krok').forEach(k=>{k.classList.remove('active');k.style.display='none'})
-    document.getElementById('krok-ok').classList.add('active')
-    document.getElementById('krok-info').textContent=''
-    document.querySelector('.stepper-wrap').style.display='none'
-    window.scrollTo({top:0,behavior:'smooth'})
-  },1200)
+  const btn = document.getElementById('btn-wyslij')
+  btn.textContent = 'Wysyłanie...'
+  btn.disabled = true
+
+  // Zbierz dane z formularza
+  const imie  = document.getElementById('f-imie').value.trim()
+  const email = document.getElementById('f-email').value.trim()
+  const tel   = document.getElementById('f-tel').value.trim()
+  const uwagi = document.getElementById('f-uwagi').value.trim()
+
+  // Zbierz konfigurację
+  const t    = TYPY.find(x=>x.id===stan.typ)
+  const d    = DEKORY.find(x=>x.id===stan.material)
+  const w    = obliczWycene()
+  const sek  = stan.sekcje.map((s,i)=>{
+    const els = s.el.map(e=>({polka:'Półka',drazek:'Drążek',szuflada:'Szuflada'}[e.t]||e.t)).join(', ')
+    return `Sekcja ${i+1}: ${els}`
+  }).join(' | ')
+
+  const tresc = `
+    <h2 style="color:#1a1a16;font-family:Arial,sans-serif">Nowe zgłoszenie z konfiguratora — lesno-meble.pl</h2>
+    <table style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse;width:100%">
+      <tr><td style="padding:8px;font-weight:bold;width:160px">Imię i nazwisko</td><td style="padding:8px">${imie}</td></tr>
+      <tr style="background:#f7f3ed"><td style="padding:8px;font-weight:bold">Email klienta</td><td style="padding:8px"><a href="mailto:${email}">${email}</a></td></tr>
+      <tr><td style="padding:8px;font-weight:bold">Telefon</td><td style="padding:8px">${tel||'—'}</td></tr>
+      <tr style="background:#f7f3ed"><td style="padding:8px;font-weight:bold">Typ mebla</td><td style="padding:8px">${t?.nazwa||'—'}</td></tr>
+      <tr><td style="padding:8px;font-weight:bold">Wymiary</td><td style="padding:8px">${stan.szer} × ${stan.wys} × ${stan.gl} mm</td></tr>
+      <tr style="background:#f7f3ed"><td style="padding:8px;font-weight:bold">Sekcje</td><td style="padding:8px">${sek}</td></tr>
+      <tr><td style="padding:8px;font-weight:bold">Dekor</td><td style="padding:8px">${d?.nazwa||'—'} (${d?.cena_m2||'—'} zł/m²)</td></tr>
+      <tr style="background:#f7f3ed"><td style="padding:8px;font-weight:bold">Konstrukcja</td><td style="padding:8px">${stan.konstr==='obok'?'Standard':'Zabudowa — boki na cokole'}</td></tr>
+      <tr><td style="padding:8px;font-weight:bold">Plecy HDF</td><td style="padding:8px">${stan.hdf==='tak'?'Tak':'Nie'}</td></tr>
+      <tr style="background:#f7f3ed"><td style="padding:8px;font-weight:bold">Wycena orientacyjna</td><td style="padding:8px;font-size:18px;font-weight:bold;color:#966a38">${w?'~'+w.brutto.toLocaleString('pl-PL')+' zł brutto':'—'}</td></tr>
+      ${uwagi?`<tr><td style="padding:8px;font-weight:bold">Uwagi klienta</td><td style="padding:8px">${uwagi}</td></tr>`:''}
+    </table>
+    <p style="font-family:Arial,sans-serif;font-size:12px;color:#999;margin-top:20px">Wiadomość wysłana automatycznie z konfiguratora lesno-meble.pl</p>
+  `
+
+  // Brevo API
+  const BREVO_API_KEY = 'TUTAJ_WKLEJ_NOWY_KLUCZ_API'
+
+  fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'api-key': BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      sender: { name: 'Konfigurator LESNO', email: 'kontakt@lesno-meble.pl' },
+      to: [{ email: 'kontakt@lesno-meble.pl', name: 'LESNO Group' }],
+      replyTo: { email: email, name: imie },
+      subject: `Nowe zgłoszenie: ${t?.nazwa||'mebel'} ${stan.szer}×${stan.wys} mm — ${imie}`,
+      htmlContent: tresc
+    })
+  })
+  .then(r => {
+    if(r.ok || r.status===201) {
+      // Sukces
+      document.querySelectorAll('.krok').forEach(k=>{k.classList.remove('active')})
+      document.getElementById('krok-ok').classList.add('active')
+      document.querySelector('.stepper-wrap').style.display='none'
+      window.scrollTo({top:0,behavior:'smooth'})
+    } else {
+      return r.json().then(e=>{ throw new Error(e.message||'Błąd wysyłki') })
+    }
+  })
+  .catch(err => {
+    btn.textContent = 'Wyślij projekt do wyceny'
+    btn.disabled = false
+    alert('Błąd wysyłki: ' + err.message + '\nSpróbuj ponownie lub napisz bezpośrednio na kontakt@lesno-meble.pl')
+  })
 }
 
 // ===================== CANVAS PODSUMOWANIE =====================
