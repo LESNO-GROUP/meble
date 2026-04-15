@@ -922,10 +922,30 @@ const DEKORY = [
   {id:'K679PV', nazwa:'Emporio Skin Dąb Biały',  kat:'Drewno',     kol:'#E8E0D0', cena_m2:65.79},
 ]
 
-// URL zdjęcia z kronosfera.pl — budowany dynamicznie
+// Mapa URL-ów zdjęć dekorów z kronosfera.pl (pobrano kwiecień 2026)
+const DEKOR_IMGS = {
+  '0101PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/9bb84e51aa3ccc601db16b6829d22adc/jpg/kronosfera/images-small/0101%20PE_v2.jpg',
+  '0110SM': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/ce570587ef21cb2bac002d0de9002506/jpg/kronosfera/images-small/0110%20SM_v2.jpg',
+  '8685SM': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/a5ac4213ca5c17efeeea3c02248d4b8b/jpg/kronosfera/images-small/8685%20BS_v2.jpg',
+  '0112PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/88955152b867139e5ed2732f22555ce4/jpg/kronosfera/images-small/0112%20PE_v2.jpg',
+  '0162PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/7ba76c1e0bdd101ccdbea8fbb32780fa/jpg/kronosfera/images-small/0162%20PE_v2.jpg',
+  '0164PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/27732dbd151b1bb1696abd4dfd935765/jpg/kronosfera/images-small/0164%20PE_v2.jpg',
+  '0171PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/661a5350a076a0c050e42879ada77f6f/jpg/kronosfera/images-small/0171%20PE_v2.jpg',
+  '0190PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/6243b29ea0abad2c3f10daf73218321b/jpg/kronosfera/images-small/0190%20PE_v2.jpg',
+  '0191SU': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/4ee6f2195851f878c5244280aa1d1298/jpg/kronosfera/images-small/0191%20SU_v2.jpg',
+  '0522PE': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/cc3dd55a04d1f55841769d8f317fc9fc/jpg/kronosfera/images-small/0522%20PE_v2.jpg',
+  '5981BS': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/a3c77908ac7a4e4d3023e3093b0db54d/jpg/kronosfera/images-small/5981%20BS_v2.jpg',
+  '7045SU': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/613db345d6531a93d302ec1c681ae43c/jpg/kronosfera/images-small/7045%20SU_v2.jpg',
+  '8100SM': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/5ba49155480357333cfa967f7f023482/jpg/kronosfera/images-small/8100%20SM_v2.jpg',
+  '8681SU': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/39279f639fd229a245f406975246f3ae/jpg/kronosfera/images-small/8681%20SU_v2.jpg',
+  '8685BS': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/a5ac4213ca5c17efeeea3c02248d4b8b/jpg/kronosfera/images-small/8685%20BS_v2.jpg',
+  '8984BS': 'https://kronosfera.pl/storage/image/core_files/2020/3/23/3c65a22964b2b2261d785d7723ac3e14/jpg/kronosfera/images-small/8984%20BS_v2.jpg',
+  'W980':   'https://kronosfera.pl/storage/image/core_files/2020/3/23/39279f639fd229a245f406975246f3ae/jpg/kronosfera/images-small/8681%20SU_v2.jpg',
+  'U999':   'https://kronosfera.pl/storage/image/core_files/2020/3/23/dcdc5be25fc1faad9d8ff952627576ea/jpg/kronosfera/images-small/8996%20BS_v2.jpg',
+}
+
 function dekorImgUrl(id) {
-  // Format: https://kronosfera.pl/zdjecia/dekory/miniatura/{id_lower}.jpg
-  return `https://kronosfera.pl/zdjecia/dekory/${id.toLowerCase()}.jpg`
+  return DEKOR_IMGS[id] || null
 }
 
 // Rozszerzony katalog dekorów — ~200 sztuk z katalogu Kronospan
@@ -1637,8 +1657,7 @@ function renderDekory(){
     const imgUrl = dekorImgUrl(d.id)
     return `<button class="dekor-card${stan.material===d.id?' sel':''}" onclick="selMat('${d.id}')" title="${d.nazwa} (${d.id})">
       <span class="dekor-kolor" style="background:${d.kol}">
-        <img src="${imgUrl}" alt="${d.nazwa}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block"
-          onerror="this.style.display='none'" loading="lazy"/>
+        ${imgUrl ? `<img src="${imgUrl}" alt="${d.nazwa}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block" onerror="this.style.display='none'" loading="lazy"/>` : ''}
       </span>
       <span class="dekor-nazwa-full">${d.nazwa}</span>
       <span class="dekor-id">${d.id}</span>
@@ -1768,9 +1787,13 @@ function obliczWycene(){
   const dekor = WSZYSTKIE_DEKORY.find(d=>d.id===stan.material)
   const cena_plyta_m2 = dekor?.cena_m2 || STAWKI.plyta_m2
 
-  // Dynamiczny odpad — oblicz PRZED kosztami płyty
+  // Dynamiczny odpad — skalibrowany na podstawie realnych realizacji (kwiecień 2026)
+  // Dane: garderoba 6 ark=10%, pralnia 2-2.5 ark=23-40%, szafa 2 ark=12.5%
   const ark_bazowy = Math.ceil(m2p / 5.796)
-  const odpad_dyn = ark_bazowy <= 2 ? 0.30 : ark_bazowy <= 4 ? 0.25 : 0.20
+  const odpad_dyn = ark_bazowy <= 1 ? 0.40   // 1 arkusz — dużo resztek
+                  : ark_bazowy <= 2 ? 0.28   // 2 arkusze — typowa mała szafa
+                  : ark_bazowy <= 4 ? 0.22   // 3-4 arkusze — średnia szafa/garderoba
+                  : 0.15                     // 5+ arkuszy — duża garderoba, mniej odpadu
   const ark    = Math.ceil(m2p*(1+odpad_dyn)/(2.8*2.07))
 
   // Koszty materiałów (ceny Kronospan — bez dodatkowej marży)
