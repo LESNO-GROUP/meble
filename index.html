@@ -288,6 +288,7 @@ h2 em { font-style: italic; color: var(--warm-d); }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
   margin-top: 4rem;
 }
+@media (max-width: 700px) { .projects-grid { grid-template-columns: 1fr 1fr; } }
 .project-card {
   border-radius: 16px; overflow: hidden;
   border: 1px solid rgba(24,24,26,.08);
@@ -300,6 +301,8 @@ h2 em { font-style: italic; color: var(--warm-d); }
   display: flex; align-items: center; justify-content: center;
   position: relative; overflow: hidden;
 }
+.project-img img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s; }
+.project-card:hover .project-img img { transform:scale(1.04); }
 .project-placeholder {
   width: 100%; height: 100%;
   display: flex; flex-direction: column;
@@ -635,47 +638,74 @@ i dekory</div>
   <h2>Przykładowe <em>projekty</em></h2>
   <p class="section-sub">Każda szafa powstaje od zera — zaprojektowana pod konkretną wnękę i potrzeby klienta.</p>
   <div class="projects-grid">
+    <!-- Karta 1: Zabudowa przedpokój -->
     <div class="project-card" data-reveal>
       <div class="project-img">
-        <div class="project-placeholder">
-          <svg viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="2"/><line x1="24" y1="4" x2="24" y2="44"/><rect x="8" y="10" width="12" height="4" rx="1"/><rect x="8" y="20" width="12" height="4" rx="1"/><rect x="28" y="10" width="12" height="14" rx="1"/><rect x="8" y="30" width="28" height="4" rx="1"/></svg>
-          <span>Zdjęcie wkrótce</span>
-        </div>
+        <img src="real_szafa_przedpokoj.jpg" alt="Zabudowa przedpokój biało-dębowa" style="width:100%;height:100%;object-fit:cover"/>
       </div>
       <div class="project-info">
-        <div class="project-type">Szafa wnękowa</div>
-        <div class="project-title">Dąb Halifax, 2 sekcje</div>
-        <div class="project-meta">2400 × 2500 × 600 mm · drążki + półki</div>
+        <div class="project-type">Zabudowa przedpokój</div>
+        <div class="project-title">Biel + Dąb Artisan, siedzisko</div>
+        <div class="project-meta">Zabudowa na wymiar · wieszaki + szafy + półka</div>
       </div>
     </div>
+    <!-- Karta 2: Garderoba z szufladami -->
     <div class="project-card" data-reveal data-reveal-d="1">
       <div class="project-img">
-        <div class="project-placeholder">
-          <svg viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="2"/><line x1="18" y1="4" x2="18" y2="44"/><line x1="30" y1="4" x2="30" y2="44"/><rect x="6" y="12" width="10" height="3" rx="1"/><rect x="6" y="20" width="10" height="3" rx="1"/><rect x="6" y="28" width="10" height="3" rx="1"/><rect x="20" y="10" width="8" height="24" rx="1"/><rect x="32" y="12" width="10" height="3" rx="1"/><rect x="32" y="18" width="10" height="12" rx="1"/></svg>
-          <span>Zdjęcie wkrótce</span>
-        </div>
+        <img src="real_garderoba_szuflady.jpg" alt="Garderoba narożna z szufladami" style="width:100%;height:100%;object-fit:cover"/>
+      </div>
+      <div class="project-info">
+        <div class="project-type">Garderoba narożna</div>
+        <div class="project-title">Biel Alpejska, narożnik L</div>
+        <div class="project-meta">Drążki + półki + szuflady Metabox</div>
+      </div>
+    </div>
+    <!-- Karta 3: Łazienka dark -->
+    <div class="project-card" data-reveal data-reveal-d="2">
+      <div class="project-img">
+        <img src="real_lazienka_dark.jpg" alt="Szafka łazienkowa antracyt" style="width:100%;height:100%;object-fit:cover"/>
+      </div>
+      <div class="project-info">
+        <div class="project-type">Zabudowa łazienkowa</div>
+        <div class="project-title">Antracyt + beton, wysoka szafka</div>
+        <div class="project-meta">Szafka kolumnowa na wymiar · szuflady</div>
+      </div>
+    </div>
+    <!-- Karta 4: Garderoba wnętrze -->
+    <div class="project-card" data-reveal>
+      <div class="project-img">
+        <img src="real_garderoba2.jpg" alt="Garderoba wnętrze białe" style="width:100%;height:100%;object-fit:cover"/>
       </div>
       <div class="project-info">
         <div class="project-type">Garderoba</div>
-        <div class="project-title">Biel Alpejska, 3 sekcje</div>
-        <div class="project-meta">3000 × 2400 × 550 mm · pełne wyposażenie</div>
+        <div class="project-title">Biel, duże wnętrze narożne</div>
+        <div class="project-meta">9200 × 2600 mm · drążki + półki</div>
       </div>
     </div>
-    <div class="project-card" data-reveal data-reveal-d="2">
+    <!-- Karta 5: Łazienka jasna -->
+    <div class="project-card" data-reveal data-reveal-d="1">
       <div class="project-img">
-        <div class="project-placeholder">
-          <svg viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="2"/><rect x="8" y="10" width="32" height="4" rx="1"/><rect x="8" y="20" width="32" height="4" rx="1"/><rect x="8" y="30" width="32" height="4" rx="1"/><rect x="8" y="38" width="32" height="4" rx="1"/></svg>
-          <span>Zdjęcie wkrótce</span>
-        </div>
+        <img src="real_lazienka_jasna.jpg" alt="Łazienka jasna szafka z lustrem" style="width:100%;height:100%;object-fit:cover"/>
       </div>
       <div class="project-info">
-        <div class="project-type">Regał</div>
-        <div class="project-title">Antracyt, otwarte półki</div>
-        <div class="project-meta">1800 × 2200 × 400 mm · 6 półek</div>
+        <div class="project-type">Zabudowa łazienkowa</div>
+        <div class="project-title">Biel, szafka z lustrem</div>
+        <div class="project-meta">Szafka lustrzana + słupek · na wymiar</div>
       </div>
     </div>
-  </div>
-  <p class="projects-note">📸 Zdjęcia z realizacji pojawią się wkrótce. Jesteśmy na początku drogi — Twój projekt może być jednym z pierwszych!</p>
+    <!-- Karta 6: Szafy biurowe -->
+    <div class="project-card" data-reveal data-reveal-d="2">
+      <div class="project-img">
+        <img src="real_szafy_biurowe.jpg" alt="Szafy biurowe antracyt" style="width:100%;height:100%;object-fit:cover"/>
+      </div>
+      <div class="project-info">
+        <div class="project-type">Zabudowa biurowa</div>
+        <div class="project-title">Antracyt + Dąb, szafy zamykane</div>
+        <div class="project-meta">Seria 6 szaf biurowych · zamki</div>
+      </div>
+    </div>
+  
+  <p class="projects-note">📸 Kolejne realizacje już wkrótce. Masz pytanie o konkretny projekt? <a href="mailto:kontakt@lesno-meble.pl" style="color:var(--warm-d)">Napisz do nas</a>.</p>
 </section>
 
 <!-- FAQ -->
