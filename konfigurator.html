@@ -12,13 +12,16 @@
 <meta name="keywords" content="szafy na wymiar, szafa wnękowa na wymiar, meble na wymiar DIY, formatki meblowe, garderoba na wymiar, szafa do zabudowy, meble na wymiar Katowice, meble na wymiar Śląsk, konfigurator szaf"/>
 <meta name="author" content="LESNO Meble"/>
 <meta name="robots" content="index, follow"/>
-<link rel="canonical" href="https://www.lesno-meble.pl/"/>
+<link rel="canonical" href="https://www.lesno-meble.pl/konfigurator"/>
 
 <!-- SEO: Open Graph (Facebook, LinkedIn) -->
 <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://www.lesno-meble.pl/"/>
+<meta property="og:url" content="https://www.lesno-meble.pl/konfigurator"/>
 <meta property="og:title" content="Szafy wnękowe na wymiar — zaprojektuj i złóż sam | LESNO Meble"/>
 <meta property="og:description" content="Konfigurator szaf na wymiar. Wybierz wymiary, układ i dekor — my tniemy, oklejamy i wysyłamy. Ty składasz sam. Realizacja 5–10 dni, dostawa cała Polska."/>
+<meta property="og:image" content="https://www.lesno-meble.pl/real_garderoba_szuflady.jpg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
 <meta property="og:site_name" content="LESNO Meble"/>
 <meta property="og:locale" content="pl_PL"/>
 
@@ -118,19 +121,46 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 .k-title{font-family:var(--ff-display);font-size:30px;font-weight:400;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em}
 .k-sub{font-size:14px;color:var(--gray-500);margin-bottom:1.75rem;line-height:1.5}
 
-/* KROK 1 — typ mebla */
-.typ-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
-@media(max-width:560px){.typ-grid{grid-template-columns:repeat(2,1fr)}}
-.typ-card{background:#fff;border:1.5px solid var(--beige-200);border-radius:var(--r-md);padding:1.25rem .875rem;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:all .15s;text-align:center}
-.typ-card:hover{border-color:var(--brown-400);background:#fdf6ee}
-.typ-card.sel{border-color:var(--brown-400);box-shadow:0 0 0 1px var(--brown-400);background:#fdf6ee}
-.typ-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center}
-.typ-name{font-size:13px;font-weight:500;color:var(--ink)}
-.typ-desc{font-size:11px;color:var(--gray-500);line-height:1.4}
-.opcja-row{background:var(--beige-100);border-radius:var(--r-sm);padding:.875rem 1.125rem;display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
-.opcja-label{font-size:13px;color:var(--gray-600);white-space:nowrap}
-.field-select{padding:7px 10px;border:1px solid var(--beige-200);border-radius:var(--r-sm);background:#fff;font-size:13px;color:var(--gray-800);cursor:pointer}
-.opcja-hint{font-size:11px;color:var(--gray-400)}
+/* KROK 1 — typ mebla — SPLIT LAYOUT */
+.k1-split{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:0;
+  height:calc(100vh - var(--nav-h, 100px));
+  width:100vw;
+  margin-left:calc(-50vw + 50%);
+  border-bottom:1px solid var(--beige-200);background:#fff;overflow:hidden}
+@media(max-width:900px){.k1-split{grid-template-columns:1fr 360px}}
+@media(max-width:680px){.k1-split{grid-template-columns:1fr;width:100%;margin-left:0;height:auto}}
+.k1-lewa{background:var(--beige-200);overflow:hidden;height:100%}
+@media(max-width:680px){.k1-lewa{height:240px;border-radius:var(--r-md);margin-bottom:1rem}}
+.k1-render{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .25s ease;position:absolute;top:0;left:0}
+.k1-render-wrap{position:relative;width:100%;height:100%;background:var(--beige-200)}
+@media(max-width:680px){.k1-render-wrap{height:240px}}
+.k1-render-label{position:absolute;bottom:16px;left:16px;background:rgba(26,26,22,.72);backdrop-filter:blur(4px);border-radius:6px;padding:5px 10px;font-size:11px;color:rgba(240,235,226,.85);letter-spacing:.04em;font-weight:500}
+.k1-prawa{padding:.75rem 1.25rem .5rem;display:flex;flex-direction:column;overflow-y:auto;height:100%;background:#fff}
+@media(max-width:680px){.k1-prawa{padding:1.25rem 0;height:auto}}
+.k1-prawa .k-title{font-size:19px;margin-bottom:1px}
+.k1-prawa .k-sub{margin-bottom:.5rem;font-size:12px}
+.typ-lista{display:flex;flex-direction:column;gap:4px;margin-bottom:.5rem}
+.typ-card{background:var(--beige-50);border:1.5px solid var(--beige-200);border-radius:var(--r-md);padding:.4rem .75rem;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;text-align:left}
+.typ-card:hover{border-color:var(--brown-300);background:#fdf6ee}
+.typ-card.sel{border-color:var(--brown-400);box-shadow:0 0 0 1.5px var(--brown-400);background:#fdf6ee}
+.typ-icon{width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:7px;border:1px solid var(--beige-200)}
+.typ-card.sel .typ-icon{border-color:var(--brown-300);background:#fef7ee}
+.typ-texts{flex:1}
+.typ-name{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:1px}
+.typ-desc{font-size:11px;color:var(--gray-500);line-height:1.3}
+.typ-arrow{font-size:16px;color:var(--beige-300);transition:color .15s;flex-shrink:0}
+.typ-card.sel .typ-arrow{color:var(--brown-400)}
+.opcja-row{background:var(--beige-100);border-radius:var(--r-sm);padding:.5rem .875rem;display:flex;align-items:center;gap:.875rem;margin-bottom:.5rem;flex-wrap:wrap}
+.opcja-label{font-size:12px;color:var(--gray-600);white-space:nowrap}
+.field-select{padding:6px 9px;border:1px solid var(--beige-200);border-radius:var(--r-sm);background:#fff;font-size:12px;color:var(--gray-800);cursor:pointer}
+.opcja-hint{font-size:10px;color:var(--gray-400);line-height:1.3}
+/* Nowa ilustracja cokołu — widok z przodu */
+.konstr-vis{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:.5rem}
+.konstr-vis-card{background:#fff;border:1.5px solid var(--beige-200);border-radius:var(--r-sm);padding:.25rem;text-align:center;cursor:pointer;transition:all .15s;overflow:visible}
+.konstr-vis-card:hover{border-color:var(--brown-300)}
+.konstr-vis-card.sel{border-color:var(--brown-400);box-shadow:0 0 0 1px var(--brown-400);background:#fdf6ee}
+.konstr-vis-label{font-size:11px;font-weight:500;color:var(--gray-800);margin-top:.2rem}
+.konstr-vis-desc{font-size:9px;color:var(--gray-500);margin-top:0;line-height:1.2}
 
 /* KROK 2 — wymiary */
 .instr-box{border:1px solid var(--beige-200);border-radius:var(--r-md);margin-bottom:1.5rem;overflow:hidden}
@@ -334,7 +364,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 .btn-nowy{padding:11px 28px;background:var(--brown-400);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s}
 .btn-nowy:hover{background:var(--brown-500)}
 
-@media print{.header,.stepper-wrap,.nav-btns,.form-btns,.preset-box,.preset-pills,.btn-wstecz,.btn-dalej{display:none!important}.main{padding:0}.krok{display:block!important}}
+@media print{
+  body{background:#fff!important}
+  .header,.stepper-wrap,.nav-btns,.form-btns,.preset-box,.opcje-box,
+  .btn-wstecz,.btn-dalej,.btn-pdf,.live-wycena-k3,.live-wycena-k4,
+  #upload-box,#live-wycena-k3,#live-wycena-k4,#sek-szer-warn,#zaawans-hint{display:none!important}
+  .main{padding:1cm 1.5cm}
+  .krok{display:none!important}
+  #k5{display:block!important}
+  .sum-card{border:1px solid #ccc;border-radius:8px;padding:12px;margin-bottom:12px;break-inside:avoid}
+  .podglad-wrap{border:1px solid #ccc;border-radius:8px;padding:12px;break-inside:avoid}
+  #canvas2d-sum{max-width:100%;height:auto}
+  .form-box{display:none!important}
+  .print-header{display:block!important}
+}
+.print-header{display:none;font-family:var(--ff-display);font-size:22px;color:var(--ink);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--beige-200)}
 </style>
 </head>
 <body>
@@ -354,67 +398,79 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 
 <!-- KROK 1 -->
 <div class="krok active" id="k1">
-  <h1 class="k-title">Co chcesz zaprojektować?</h1>
-  <p class="k-sub">Wybierz typ mebla, który chcesz skonfigurować.</p>
-  <div class="typ-grid" id="typ-grid"></div>
-  <div class="opcja-row" id="konstr-row" style="display:none">
-    <span class="opcja-label">Konstrukcja boków:</span>
-    <select class="field-select" id="konstr-sel">
-      <option value="obok">Standard</option>
-      <option value="na">Zabudowa — boki na cokole</option>
-    </select>
-    <span class="opcja-hint" id="konstr-hint">Listwa cokołowa widoczna z przodu. Najczęściej stosowane.</span>
-  </div>
-  <!-- SVG ilustracja cokołu -->
-  <div id="konstr-ilustracja" style="display:none;background:#fff;border:1px solid var(--beige-200);border-radius:var(--r-md);padding:1.25rem;margin-bottom:1rem">
-    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:1rem">Różnica między wariantami — widok z boku</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
-      <div style="text-align:center">
-        <svg viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:130px">
-          <rect x="0" y="182" width="160" height="18" fill="#e8e0d0"/>
-          <text x="80" y="195" text-anchor="middle" font-size="9" fill="#9ca3af" font-family="DM Sans,sans-serif">podłoga</text>
-          <rect x="20" y="8" width="12" height="174" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="128" y="8" width="12" height="174" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="20" y="8" width="120" height="12" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="20" y="170" width="120" height="12" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="32" y="170" width="96" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width="1" stroke-dasharray="3,2"/>
-          <line x1="80" y1="178" x2="80" y2="182" stroke="#966a38" stroke-width="1.5"/>
-          <text x="80" y="167" text-anchor="middle" font-size="8" fill="#966a38" font-family="DM Sans,sans-serif" font-weight="500">10 cm</text>
-          <rect x="32" y="65" width="96" height="7" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
-          <rect x="32" y="110" width="96" height="7" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
-        </svg>
-        <div style="font-size:12px;font-weight:500;color:var(--gray-800);margin-top:.5rem">Standard</div>
-        <div style="font-size:11px;color:var(--gray-500);margin-top:.25rem;line-height:1.45">Boki do podłogi.<br/>Cokół między ściankami.</div>
-      </div>
-      <div style="text-align:center">
-        <svg viewBox="0 0 160 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:130px">
-          <rect x="0" y="182" width="160" height="18" fill="#e8e0d0"/>
-          <text x="80" y="195" text-anchor="middle" font-size="9" fill="#9ca3af" font-family="DM Sans,sans-serif">podłoga</text>
-          <rect x="10" y="162" width="140" height="20" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <text x="80" y="158" text-anchor="middle" font-size="8" fill="#966a38" font-family="DM Sans,sans-serif" font-weight="500">10 cm</text>
-          <rect x="20" y="8" width="12" height="154" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="128" y="8" width="12" height="154" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="20" y="8" width="120" height="12" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="20" y="150" width="120" height="12" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
-          <rect x="32" y="60" width="96" height="7" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
-          <rect x="32" y="105" width="96" height="7" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
-        </svg>
-        <div style="font-size:12px;font-weight:500;color:var(--gray-800);margin-top:.5rem">Zabudowa na cokole</div>
-        <div style="font-size:11px;color:var(--gray-500);margin-top:.25rem;line-height:1.45">Cokół ciągły na całą<br/>szerokość wnęki.</div>
+  <div class="k1-split">
+    <!-- LEWA — render aktywnego typu -->
+    <div class="k1-lewa">
+      <div class="k1-render-wrap">
+        <img id="k1-render-img" class="k1-render" src="szafa__1_.jpg" alt=""/>
+        <div class="k1-render-label" id="k1-render-label">Garderoba</div>
       </div>
     </div>
-  </div>
-  <div class="opcja-row" id="hdf-row" style="display:none">
-    <span class="opcja-label">Plecy HDF 3mm:</span>
-    <select class="field-select" id="hdf-sel" onchange="stan.hdf=this.value;calcAll()">
-      <option value="brak">Brak pleców</option>
-      <option value="tak">Tak — naklejane HDF (wpływa na cenę)</option>
-    </select>
-    <span class="opcja-hint">HDF nakleja się na wymiar otworów — nie jest elementem konstrukcyjnym.</span>
-  </div>
-  <div class="nav-btns">
-    <div></div>
-    <button class="btn-dalej" id="k1-dalej" disabled onclick="idDoKroku(2)">Dalej</button>
+    <!-- PRAWA — karty + opcje -->
+    <div class="k1-prawa">
+      <h1 class="k-title">Co chcesz zaprojektować?</h1>
+      <p class="k-sub">Wybierz typ mebla, który chcesz skonfigurować.</p>
+      <div class="typ-lista" id="typ-grid"></div>
+
+      <!-- Konstrukcja boków — select -->
+      <div class="opcja-row" id="konstr-row" style="display:none">
+        <span class="opcja-label">Konstrukcja boków:</span>
+        <select class="field-select" id="konstr-sel">
+          <option value="obok">Standard</option>
+          <option value="na">Zabudowa — boki na cokole</option>
+        </select>
+        <span class="opcja-hint" id="konstr-hint"></span>
+      </div>
+
+      <!-- Ilustracja cokołu — widok z przodu, klikalny -->
+      <div id="konstr-ilustracja" style="display:none;margin-bottom:1rem">
+        <div style="font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:.75rem">Różnica między wariantami — widok z przodu</div>
+        <div class="konstr-vis">
+          <div class="konstr-vis-card sel" id="konstr-vis-obok" onclick="selKonstrVis('obok')">
+            <svg viewBox="0 0 140 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:64px">
+              <rect x="0" y="148" width="140" height="12" fill="#e8e0d0"/>
+              <rect x="10" y="10" width="11" height="138" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="119" y="10" width="11" height="138" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="10" y="10" width="120" height="11" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="10" y="133" width="120" height="11" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="21" y="133" width="98" height="15" fill="#ddd0bc" stroke="#9a7a45" stroke-width="1" stroke-dasharray="4,2"/>
+              <rect x="21" y="55" width="98" height="6" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".7"/>
+              <rect x="21" y="95" width="98" height="6" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".7"/>
+              <text x="70" y="145" text-anchor="middle" font-size="7.5" fill="#966a38" font-family="DM Sans,sans-serif" font-weight="600">cokół</text>
+            </svg>
+            <div class="konstr-vis-label">Standard</div>
+            <div class="konstr-vis-desc">Boki do podłogi · cokół między ściankami</div>
+          </div>
+          <div class="konstr-vis-card" id="konstr-vis-na" onclick="selKonstrVis('na')">
+            <svg viewBox="0 0 140 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:64px">
+              <rect x="0" y="148" width="140" height="12" fill="#e8e0d0"/>
+              <rect x="6" y="133" width="128" height="15" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="10" y="10" width="11" height="123" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="119" y="10" width="11" height="123" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="10" y="10" width="120" height="11" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="10" y="122" width="120" height="11" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+              <rect x="21" y="50" width="98" height="6" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".7"/>
+              <rect x="21" y="88" width="98" height="6" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".7"/>
+              <text x="70" y="145" text-anchor="middle" font-size="7.5" fill="#966a38" font-family="DM Sans,sans-serif" font-weight="600">cokół ciągły</text>
+            </svg>
+            <div class="konstr-vis-label">Zabudowa na cokole</div>
+            <div class="konstr-vis-desc">Cokół ciągły na całą szerokość wnęki</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="opcja-row" id="hdf-row" style="display:none;margin-bottom:.5rem">
+        <span class="opcja-label">Plecy HDF 3mm:</span>
+        <select class="field-select" id="hdf-sel" onchange="stan.hdf=this.value;calcAll()" style="flex:1">
+          <option value="brak">Bez pleców HDF</option>
+          <option value="tak">Tak — plecy HDF (naklejane na wymiar otworów)</option>
+        </select>
+      </div>
+
+      <div style="margin-top:auto;padding-top:.625rem;display:flex;justify-content:flex-end">
+        <button class="btn-dalej" id="k1-dalej" disabled onclick="idDoKroku(2)">Dalej</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -429,10 +485,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       Prosty pomiar (3 wymiary)
     </button>
-    <button id="tryb-zaawans-btn" class="tryb-btn" onclick="selTrybPomiaru('zaawans')">
+    <button id="tryb-zaawans-btn" class="tryb-btn" onclick="selTrybPomiaru('zaawans')" title="Użyj gdy wnęka jest krzywa lub skośna (pomiary różnią się powyżej 10 mm)">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/><circle cx="4" cy="4" r="1" fill="currentColor"/><circle cx="10" cy="4" r="1" fill="currentColor"/><circle cx="4" cy="10" r="1" fill="currentColor"/><circle cx="10" cy="10" r="1" fill="currentColor"/><circle cx="7" cy="4" r="1" fill="currentColor"/><circle cx="7" cy="10" r="1" fill="currentColor"/></svg>
       Wnęka nieregularna (16 punktów)
     </button>
+  </div>
+  <div style="margin-bottom:1.25rem;padding:.6rem .875rem;background:#fffbf5;border:1px solid #f0d9b8;border-radius:var(--r-sm);font-size:12px;color:#7a5228;display:flex;align-items:flex-start;gap:7px" id="zaawans-hint" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><circle cx="7" cy="7" r="6" stroke="#b8895a" stroke-width="1.2"/><path d="M7 5v3.5M7 9.5v.5" stroke="#b8895a" stroke-width="1.3" stroke-linecap="round"/></svg>
+    <span><strong>Tryb dla nieregularnych wnęk.</strong> Użyj gdy Twoje pomiary w różnych punktach różnią się o więcej niż 10 mm — np. sufit jest krzywy, ściany nie są prostopadłe lub wnęka jest skośna. Podaj też wymiary w trybie prostym (powyżej) — są potrzebne do wyceny.</span>
   </div>
 
   <!-- PROSTY TRYB -->
@@ -601,6 +661,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
     </div>
   </div>
   <div class="sek-pasek" id="sek-pasek"></div>
+  <div id="sek-szer-warn" style="display:none;align-items:flex-start;gap:7px;padding:.6rem .875rem;background:#fff5f5;border:1px solid #fca5a5;border-radius:var(--r-sm);font-size:12px;color:#d03030;margin-bottom:.75rem;line-height:1.5"></div>
   <div class="sekcje-lista" id="sekcje-lista"></div>
   <div class="podglad-wrap">
     <div class="podglad-title">Podgląd schematyczny (widok z przodu)</div>
@@ -704,6 +765,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
     </div>
   </div>
 
+  <!-- Live wycena — krok 3 -->
+  <div id="live-wycena-k3" style="background:var(--beige-100);border:1px solid var(--beige-200);border-radius:var(--r-md);padding:.875rem 1.125rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+    <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gray-500)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#966a38" stroke-width="1.2"/><path d="M7 4.5v3M7 8.5v.5" stroke="#966a38" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Wycena orientacyjna (bez dekoru — zaktualizuje się w kroku 4):
+    </div>
+    <div>
+      <span id="live-cena-k3" style="font-size:18px;font-weight:600;color:var(--brown-500)">—</span>
+      <span id="live-cena-k3-netto" style="font-size:12px;color:var(--gray-400);margin-left:6px"></span>
+    </div>
+  </div>
+
 <div class="nav-btns">
     <button class="btn-wstecz" onclick="idDoKroku(2)">Wstecz</button>
     <button class="btn-dalej" onclick="idDoKroku(4)">Dalej</button>
@@ -728,6 +801,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
       <div class="wybrany-dekor-info" id="wybrany-info"></div>
     </div>
   </div>
+  <!-- Live wycena — krok 4 -->
+  <div id="live-wycena-k4" style="background:var(--beige-100);border:1px solid var(--beige-200);border-radius:var(--r-md);padding:.875rem 1.125rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+    <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gray-500)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#966a38" stroke-width="1.2"/><path d="M7 4.5v3M7 8.5v.5" stroke="#966a38" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Wycena orientacyjna z wybranym dekorem:
+    </div>
+    <div>
+      <span id="live-cena-k4" style="font-size:18px;font-weight:600;color:var(--brown-500)">— wybierz dekor</span>
+      <span id="live-cena-k4-netto" style="font-size:12px;color:var(--gray-400);margin-left:6px"></span>
+    </div>
+  </div>
   <div class="nav-btns">
     <button class="btn-wstecz" onclick="idDoKroku(3)">Wstecz</button>
     <button class="btn-dalej" id="k4-dalej" disabled onclick="idDoKroku(5)">Dalej</button>
@@ -738,6 +822,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 <div class="krok" id="k5">
   <h1 class="k-title">Podsumowanie projektu</h1>
   <p class="k-sub">Sprawdź konfigurację i wyślij projekt do wyceny.</p>
+  <div class="print-header">LESNO Meble — Projekt szafy na wymiar</div>
 
   <div class="sum-card" style="margin-bottom:1.25rem">
     <div class="sum-head">Konfiguracja</div>
@@ -768,6 +853,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
       <button class="opcja-card" onclick="selOpcja('pewny',this)"><span class="opcja-ico" style="color:#2a7a4a">✓</span><div><div class="opcja-tit">Pomiary są dokładne — wyślij projekt</div><div class="opcja-desc">Mam pewne wymiary, chcę przejść od razu do wysłania projektu.</div></div></button>
       <button class="opcja-card" onclick="selOpcja('zdjecia',this)"><span class="opcja-ico" style="color:#2a5fa0">📷</span><div><div class="opcja-tit">Chcę dodać zdjęcia wnęki</div><div class="opcja-desc">Dołączę zdjęcia żeby widać było wnękę i ewentualne przeszkody (rury, gniazdka, skosy).</div></div></button>
     </div>
+    <!-- Upload zdjęć — pojawia się po wybraniu opcji "zdjecia" -->
+    <div id="upload-box" style="display:none;margin-top:1rem;border:1.5px dashed var(--beige-300);border-radius:var(--r-md);padding:1.125rem;background:#fafaf8">
+      <div style="font-size:12px;font-weight:500;color:var(--gray-600);margin-bottom:.625rem">Zdjęcia wnęki (opcjonalnie, maks. 5 plików)</div>
+      <label id="upload-label" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:1rem;border-radius:var(--r-sm);transition:background .15s" onmouseover="this.style.background='#f3ede4'" onmouseout="this.style.background='transparent'">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="2" y="6" width="28" height="20" rx="3" stroke="#b8895a" stroke-width="1.5"/><circle cx="11" cy="14" r="3" stroke="#b8895a" stroke-width="1.3"/><path d="M2 22l7-6 5 5 4-3 7 6" stroke="#b8895a" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 6v-4M20 4h4" stroke="#b8895a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span style="font-size:13px;color:var(--brown-400);font-weight:500">Kliknij aby dodać zdjęcia</span>
+        <span style="font-size:11px;color:var(--gray-400)">JPG, PNG, HEIC · maks. 10 MB każde</span>
+        <input type="file" id="f-zdjecia" accept="image/*" multiple style="display:none" onchange="onZdjeciaChange(this)"/>
+      </label>
+      <div id="zdjecia-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:.625rem"></div>
+      <div id="zdjecia-error" style="display:none;font-size:12px;color:var(--red);margin-top:.5rem"></div>
+    </div>
   </div>
   <div class="form-box">
     <div class="form-title">Wyślij projekt do wyceny</div>
@@ -779,7 +876,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
     </div>
     <div class="form-btns">
       <button class="btn-wyslij" id="btn-wyslij" disabled onclick="wyslijProjekt()">Wyślij projekt do wyceny</button>
-      <button class="btn-pdf" onclick="window.print()">
+      <button class="btn-pdf" onclick="drukujPDF()">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3.5 2h6l2.5 2.5V13h-9V2h.5z" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.5 2v2.5h2.5M4.5 8.5h6M4.5 10.5h4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
         Pobierz PDF
       </button>
@@ -793,7 +890,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 </div>
 
 <!-- EKRAN POTWIERDZENIA -->
-<div id="krok-ok">
+<div id="krok-ok" class="krok">
   <div class="ok-icon">
     <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="24" stroke="#a8845a" stroke-width="1.5"/><path d="M15 26l8 8 14-14" stroke="#a8845a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </div>
@@ -1151,6 +1248,42 @@ function idDoKroku(nr){
   }
 }
 
+// Mapa renderów dla każdego typu — główny + 2 dodatkowe
+const RENDER_MAPY = {
+  szafa:     ['szafa__1_.jpg','szafa__2_.jpg','szafa__3_.jpg'],
+  regal:     ['regal__1_.jpg','regal__2_.jpg','regal__3_.jpg'],
+  garderoba: ['garderoba__1_.jpg','garderoba__2_.jpg','garderoba__3_.jpg'],
+  lazienka:  ['lazienka.jpg','lazienka.jpg','lazienka.jpg'],
+}
+const RENDER_NAZWY = {
+  szafa:'Szafa wnękowa', regal:'Regał', garderoba:'Garderoba', lazienka:'Zabudowa łazienkowa'
+}
+let renderIdx = 0
+let renderTimer = null
+
+function ustawRender(typ) {
+  clearInterval(renderTimer)
+  renderIdx = 0
+  const imgs = RENDER_MAPY[typ] || []
+  const el = document.getElementById('k1-render-img')
+  const lbl = document.getElementById('k1-render-label')
+  if(!el || imgs.length === 0) return
+  el.style.opacity = '0'
+  setTimeout(() => {
+    el.src = imgs[0]
+    el.style.opacity = '1'
+    if(lbl) lbl.textContent = RENDER_NAZWY[typ] || ''
+  }, 150)
+  // Automatyczny slideshow co 3s jeśli są 3 rendery
+  if(imgs.length > 1) {
+    renderTimer = setInterval(() => {
+      renderIdx = (renderIdx + 1) % imgs.length
+      el.style.opacity = '0'
+      setTimeout(() => { el.src = imgs[renderIdx]; el.style.opacity = '1' }, 150)
+    }, 3000)
+  }
+}
+
 // ===================== KROK 1 =====================
 function renderTyp(){
   const g = document.getElementById('typ-grid')
@@ -1158,10 +1291,14 @@ function renderTyp(){
     const kol = stan.typ===t.id ? '#a8845a' : '#9ca3af'
     const kolBg = stan.typ===t.id ? 'rgba(168,132,90,.12)' : 'rgba(156,163,175,.06)'
     const svg = (IKONY[t.id]||'').replace(/CL_BG/g, kolBg).replace(/CL/g, kol)
-    return `<button class="typ-card${stan.typ===t.id?' sel':''}" onclick="selTyp('${t.id}')">
+    const sel = stan.typ===t.id ? ' sel' : ''
+    return `<button class="typ-card${sel}" onclick="selTyp('${t.id}')">
       <div class="typ-icon">${svg}</div>
-      <span class="typ-name">${t.nazwa}</span>
-      <span class="typ-desc">${t.opis}</span>
+      <div class="typ-texts">
+        <div class="typ-name">${t.nazwa}</div>
+        <div class="typ-desc">${t.opis}</div>
+      </div>
+      <span class="typ-arrow">›</span>
     </button>`
   }).join('')
 }
@@ -1169,22 +1306,42 @@ function renderTyp(){
 function selTyp(id){
   stan.typ = id
   renderTyp()
+  ustawRender(id)
   const t = TYPY.find(x=>x.id===id)
-  // Głębokość domyślna
+  // Głębokość domyślna — inp-gl jest w kroku 2, może nie istnieć przy init
   const inpGl = document.getElementById('inp-gl')
-  inpGl.placeholder = `np. ${t.gl_default}`
-  document.querySelector('#f-gl .field-hint').textContent = `200–800 mm (${t.gl_hint})`
+  const glHint = document.querySelector('#f-gl .field-hint')
+  if(inpGl) inpGl.placeholder = `np. ${t.gl_default}`
+  if(glHint) glHint.textContent = `200–800 mm (${t.gl_hint})`
   // Konstrukcja boków (tylko dla typów z wieńcem)
   const row = document.getElementById('konstr-row')
-  if(t.wieniec){ row.style.display='flex'; renderKonstr(); document.getElementById('konstr-ilustracja').style.display='block' }
-  else { row.style.display='none'; document.getElementById('konstr-ilustracja').style.display='none' }
+  const il = document.getElementById('konstr-ilustracja')
+  if(t.wieniec){ row.style.display='flex'; il.style.display='block'; renderKonstr() }
+  else { row.style.display='none'; il.style.display='none' }
+  // HDF
+  const hdfRow = document.getElementById('hdf-row')
+  if(hdfRow) hdfRow.style.display = 'flex'
   document.getElementById('k1-dalej').disabled = false
+}
+
+function selKonstrVis(val) {
+  stan.konstr = val
+  document.getElementById('konstr-sel').value = val
+  document.getElementById('konstr-vis-obok').classList.toggle('sel', val === 'obok')
+  document.getElementById('konstr-vis-na').classList.toggle('sel', val === 'na')
+  aktualizujHintKonstr()
+  calcAll()
 }
 
 function renderKonstr(){
   const sel = document.getElementById('konstr-sel')
   sel.innerHTML = KONSTR_OPCJE.map(k=>`<option value="${k.id}">${k.nazwa}</option>`).join('')
   sel.value = stan.konstr
+  // Synchronizuj karty wizualne
+  const vo = document.getElementById('konstr-vis-obok')
+  const vn = document.getElementById('konstr-vis-na')
+  if(vo) vo.classList.toggle('sel', stan.konstr === 'obok')
+  if(vn) vn.classList.toggle('sel', stan.konstr === 'na')
   aktualizujHintKonstr()
 }
 
@@ -1210,16 +1367,22 @@ function toggleInstr(){
 function validateW(){
   let ok = true
   const fields = [
-    {id:'f-szer',inp:'inp-szer',min:300,max:5000},
-    {id:'f-wys',inp:'inp-wys',min:400,max:2800},
-    {id:'f-gl',inp:'inp-gl',min:200,max:800},
+    {id:'f-szer',inp:'inp-szer',min:300,max:5000,label:'Szerokość'},
+    {id:'f-wys',inp:'inp-wys',min:400,max:2800,label:'Wysokość'},
+    {id:'f-gl',inp:'inp-gl',min:200,max:800,label:'Głębokość'},
   ]
   fields.forEach(f=>{
-    const v = parseInt(document.getElementById(f.inp).value)
+    const inp = document.getElementById(f.inp)
+    const v = parseInt(inp.value)
     const fd = document.getElementById(f.id)
-    const valid = v >= f.min && v <= f.max
-    fd.classList.toggle('err', !!document.getElementById(f.inp).value && !valid)
-    if(!document.getElementById(f.inp).value || !valid) ok = false
+    const errEl = fd.querySelector('.field-err')
+    const isEmpty = !inp.value || inp.value.trim() === ''
+    const outOfRange = !isEmpty && (isNaN(v) || v < f.min || v > f.max)
+    fd.classList.toggle('err', outOfRange)
+    if(errEl){
+      if(outOfRange) errEl.textContent = `${f.label} musi być ${f.min}–${f.max} mm`
+    }
+    if(isEmpty || outOfRange) ok = false
   })
   document.getElementById('k2-dalej').disabled = !ok
   return ok
@@ -1227,11 +1390,14 @@ function validateW(){
 
 function selTrybPomiaru(tryb) {
   stan.trybPomiaru = tryb
-  document.getElementById('tryb-prosty').style.display = tryb === 'prosty' ? 'block' : 'none'
+  document.getElementById('tryb-prosty').style.display = tryb === 'prosty' ? 'block' : 'block' // prosty zawsze widoczny
   document.getElementById('tryb-zaawans').style.display = tryb === 'zaawans' ? 'block' : 'none'
   document.getElementById('tryb-prosty-btn').className = 'tryb-btn' + (tryb === 'prosty' ? ' tryb-btn-on' : '')
   document.getElementById('tryb-zaawans-btn').className = 'tryb-btn' + (tryb === 'zaawans' ? ' tryb-btn-on' : '')
+  const hint = document.getElementById('zaawans-hint')
+  if(hint) hint.style.display = tryb === 'zaawans' ? 'flex' : 'none'
   if (tryb === 'zaawans') analizujPomiary()
+  validateW()
 }
 
 function analizujPomiary() {
@@ -1371,6 +1537,21 @@ function renderSekcje(){
     return `<div class="sek-blok" style="width:${Math.max(pct,5)}%">${sw>0?sw+' mm':''}</div>`
   }).join('')
 
+  // Ostrzeżenie sumy szer sekcji manualnych
+  const G18 = 18
+  const sumaManualna = stan.sekcje.filter(s=>!s.auto).reduce((a,s)=>a+(s.szer||0),0)
+  const liczbaManualna = stan.sekcje.filter(s=>!s.auto).length
+  const szer_warn = document.getElementById('sek-szer-warn')
+  if(szer_warn) {
+    const maxDostepna = W - 2*G18 - (stan.sekcje.length-1)*G18
+    if(liczbaManualna > 0 && sumaManualna > maxDostepna) {
+      szer_warn.style.display = 'flex'
+      szer_warn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0"><circle cx="7" cy="7" r="6" stroke="#d03030" stroke-width="1.2"/><path d="M7 4v3.5M7 8.5v.5" stroke="#d03030" stroke-width="1.3" stroke-linecap="round"/></svg> Suma szerokości sekcji (${sumaManualna} mm) przekracza dostępną przestrzeń (${maxDostepna} mm). Zmniejsz szerokości lub przełącz sekcje na Auto.`
+    } else {
+      szer_warn.style.display = 'none'
+    }
+  }
+
   // lista sekcji
   const lista = document.getElementById('sekcje-lista')
   const dn = {polka:'Półka',szuflada:'Szuflada',drazek:'Drążek'}
@@ -1464,6 +1645,7 @@ function renderSekcje(){
       </div>
     </div>`
   }).join('')
+  aktualizujLiveWycene()
 }
 
 function dodajEl(si,t){
@@ -1683,6 +1865,7 @@ function filterDekory(q){szukajQ=q.toLowerCase();renderDekory()}
 function selMat(id){
   stan.material=id
   renderDekory()
+  aktualizujLiveWycene()
   // Odśwież canvas w kroku 3 jeśli klient tam wrócił
   if(document.getElementById('k3').classList.contains('active')) rysujCanvas('canvas2d')
 }
@@ -1878,7 +2061,42 @@ function selOpcja(id,btn){
   opcjaWysylki=id
   document.querySelectorAll('.opcja-card').forEach(b=>b.classList.remove('sel'))
   btn.classList.add('sel')
+  const uploadBox = document.getElementById('upload-box')
+  if(uploadBox) uploadBox.style.display = id === 'zdjecia' ? 'block' : 'none'
   validateForm()
+}
+
+function onZdjeciaChange(input) {
+  const MAX_FILES = 5
+  const MAX_MB = 10
+  const errEl = document.getElementById('zdjecia-error')
+  const preview = document.getElementById('zdjecia-preview')
+  errEl.style.display = 'none'
+  preview.innerHTML = ''
+  const files = Array.from(input.files)
+  if(files.length > MAX_FILES) {
+    errEl.textContent = `Możesz dodać maks. ${MAX_FILES} zdjęcia. Wybierz mniejszą liczbę plików.`
+    errEl.style.display = 'block'
+    input.value = ''
+    return
+  }
+  const tooBig = files.filter(f => f.size > MAX_MB * 1024 * 1024)
+  if(tooBig.length > 0) {
+    errEl.textContent = `Plik "${tooBig[0].name}" jest za duży (maks. ${MAX_MB} MB).`
+    errEl.style.display = 'block'
+    input.value = ''
+    return
+  }
+  files.forEach(f => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const div = document.createElement('div')
+      div.style.cssText = 'position:relative;width:72px;height:72px;border-radius:6px;overflow:hidden;border:1px solid var(--beige-200)'
+      div.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover"/><div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.45);font-size:9px;color:#fff;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.name}</div>`
+      preview.appendChild(div)
+    }
+    reader.readAsDataURL(f)
+  })
 }
 
 function validateForm(){
@@ -1900,36 +2118,46 @@ function wyslijProjekt(){
   const uwagi = document.getElementById('f-uwagi').value.trim()
 
   const t = TYPY.find(x=>x.id===stan.typ)
-  const d = DEKORY.find(x=>x.id===stan.material)
+  const d = WSZYSTKIE_DEKORY.find(x=>x.id===stan.material)
   const w = obliczWycene()
   const sek = stan.sekcje.map((s,i)=>{
     const els = s.el.map(e=>({polka:'Półka',drazek:'Drążek',szuflada:'Szuflada'}[e.t]||e.t)).join(', ')
     return `Sekcja ${i+1}: ${els}`
   }).join(' | ')
 
-  // Formspree — wysyła email na kontakt@lesno-meble.pl
+  // FormData — obsługuje pola tekstowe i załączniki zdjęć
+  const fd = new FormData()
+  fd.append('imie', imie)
+  fd.append('email', email)
+  fd.append('telefon', tel || '—')
+  fd.append('typ_mebla', t?.nazwa || '—')
+  fd.append('wymiary', `${stan.szer} × ${stan.wys} × ${stan.gl} mm`)
+  fd.append('sekcje', sek)
+  fd.append('dekor', `${d?.nazwa||'—'} (${d?.id||'—'}, ${d?.cena_m2||'—'} zł/m²)`)
+  fd.append('akcesoria_prowadnice', stan.akcesoria?.prowadnice || '—')
+  fd.append('akcesoria_drazki', stan.akcesoria?.drazek_typ || '—')
+  fd.append('akcesoria_uchwyty', stan.akcesoria?.uchwyty || '—')
+  fd.append('akcesoria_kosze', stan.akcesoria?.kosze?.join(', ') || '—')
+  fd.append('konstrukcja', stan.konstr==='obok'?'Standard':'Zabudowa — boki na cokole')
+  fd.append('hdf', stan.hdf==='tak'?'Tak':'Nie')
+  fd.append('wycena', w?`~${w.brutto.toLocaleString('pl-PL')} zł brutto`:'—')
+  fd.append('uwagi', uwagi || '—')
+  fd.append('_subject', `Nowe zgłoszenie: ${t?.nazwa||'mebel'} ${stan.szer}×${stan.wys} mm — ${imie}`)
+  fd.append('_replyto', email)
+
+  // Zdjęcia — gdy opcja "zdjecia" i klient wybrał pliki
+  if(opcjaWysylki === 'zdjecia') {
+    const fileInput = document.getElementById('f-zdjecia')
+    if(fileInput && fileInput.files.length > 0) {
+      Array.from(fileInput.files).forEach((f, i) => fd.append(`zdjecie_${i+1}`, f, f.name))
+    }
+  }
+
+  // Formspree z FormData — NIE ustawiaj Content-Type, przeglądarka sam doda boundary
   fetch('https://formspree.io/f/meepbbww', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-    body: JSON.stringify({
-      imie,
-      email,
-      telefon:     tel || '—',
-      typ_mebla:   t?.nazwa || '—',
-      wymiary:     `${stan.szer} × ${stan.wys} × ${stan.gl} mm`,
-      sekcje:      sek,
-      dekor:       `${d?.nazwa||'—'} (${d?.id||'—'}, ${d?.cena_m2||'—'} zł/m²)`,
-      akcesoria_prowadnice: stan.akcesoria?.prowadnice || '—',
-      akcesoria_drazki: stan.akcesoria?.drazek_typ || '—',
-      akcesoria_uchwyty: stan.akcesoria?.uchwyty || '—',
-      akcesoria_kosze: stan.akcesoria?.kosze?.join(', ') || '—',
-      konstrukcja: stan.konstr==='obok'?'Standard':'Zabudowa — boki na cokole',
-      hdf:         stan.hdf==='tak'?'Tak':'Nie',
-      wycena:      w?`~${w.brutto.toLocaleString('pl-PL')} zł brutto`:'—',
-      uwagi:       uwagi || '—',
-      _subject:    `Nowe zgłoszenie: ${t?.nazwa||'mebel'} ${stan.szer}×${stan.wys} mm — ${imie}`,
-      _replyto:    email,
-    })
+    headers: { 'Accept': 'application/json' },
+    body: fd
   })
   .then(r => r.json())
   .then(data => {
@@ -1984,9 +2212,48 @@ function aktualizujAkcesoria() {
   if (box) box.style.display = maSzuflady ? 'block' : 'none'
 }
 
+function drukujPDF(){
+  // Upewnij się że jesteśmy na kroku 5 z podsumowaniem
+  if(stan.krok !== 5){
+    idDoKroku(5)
+    // Poczekaj na render canvasu
+    setTimeout(()=>{ renderPodsumowanie(); requestAnimationFrame(()=>requestAnimationFrame(()=>{ rysujCanvasSummary(); setTimeout(window.print, 300) })) }, 100)
+  } else {
+    renderPodsumowanie()
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ rysujCanvasSummary(); setTimeout(window.print, 300) }))
+  }
+}
+
+function aktualizujLiveWycene(){
+  const w = obliczWycene()
+  // Krok 3 — bez dekoru
+  const el3 = document.getElementById('live-cena-k3')
+  const el3n = document.getElementById('live-cena-k3-netto')
+  if(el3){
+    if(w){ el3.textContent=`~${w.brutto.toLocaleString('pl-PL')} zł brutto`; el3n.textContent=`(~${w.netto.toLocaleString('pl-PL')} zł netto)` }
+    else { el3.textContent='—'; el3n.textContent='' }
+  }
+  // Krok 4 — z dekorem
+  const el4 = document.getElementById('live-cena-k4')
+  const el4n = document.getElementById('live-cena-k4-netto')
+  if(el4){
+    if(w && stan.material){ el4.textContent=`~${w.brutto.toLocaleString('pl-PL')} zł brutto`; el4n.textContent=`(~${w.netto.toLocaleString('pl-PL')} zł netto)` }
+    else { el4.textContent='— wybierz dekor'; el4n.textContent='' }
+  }
+}
+
 // ===================== INIT =====================
 renderTyp()
 renderStepper()
+// Zmierz rzeczywistą wysokość headera+steppera i ustaw CSS var
+;(function(){
+  const h = (document.querySelector('.header')?.getBoundingClientRect().height||56)
+           + (document.querySelector('.stepper-wrap')?.getBoundingClientRect().height||44)
+           + 2 // 2px border/shadow
+  document.documentElement.style.setProperty('--nav-h', Math.round(h)+'px')
+})()
+// Domyślnie zaznacz szafę wnękową i pokaż jej render
+selTyp('szafa')
 </script>
 </body>
 </html>
