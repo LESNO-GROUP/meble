@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900" width="800" height="900">
+<rect width="800" height="900" fill="#2a2720"/>
+<!-- wnęka narożna — podłoga -->
+<polygon points="80,860 480,860 480,100 720,100 720,860 800,860 800,900 80,900" fill="#1e1c19"/>
+<!-- ściana tylna lewa -->
+<rect x="80" y="80" width="400" height="780" fill="#1a1916"/>
+<!-- ściana tylna prawa -->
+<rect x="480" y="80" width="240" height="780" fill="#1c1a17"/>
+<!-- sufit -->
+<rect x="80" y="80" width="640" height="22" fill="#3a3529"/>
+
+<!-- LEWA ŚCIANA — zabudowa -->
+<!-- Bok zewnętrzny lewy -->
+<rect x="96" y="102" width="20" height="720" fill="#c4a882" stroke="#9a7a45" stroke-width="1.5"/>
+<!-- Wieniec górny lewy -->
+<rect x="96" y="102" width="370" height="20" fill="#c4a882" stroke="#9a7a45" stroke-width="1.5"/>
+<!-- Wieniec dolny lewy -->
+<rect x="96" y="802" width="370" height="18" fill="#c4a882" stroke="#9a7a45" stroke-width="1.5"/>
+<!-- Cokół lewy -->
+<rect x="96" y="820" width="370" height="22" fill="#b8895a" stroke="#9a7a45" stroke-width="1"/>
+<!-- Separator 1 -->
+<rect x="222" y="122" width="16" height="680" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+<!-- Separator 2 -->
+<rect x="348" y="122" width="16" height="680" fill="#c4a882" stroke="#9a7a45" stroke-width="1"/>
+
+<!-- Sekcja 1: półki na buty -->
+<rect x="116" y="200" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="270" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="340" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="410" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="480" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="550" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="620" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="116" y="690" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+
+<!-- Sekcja 2: drążek + półki -->
+<rect x="238" y="190" width="92" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="242" y="240" width="84" height="8" rx="4" fill="#888" stroke="#666" stroke-width="1"/>
+<!-- ubrania -->
+<line x1="252" y1="248" x2="252" y2="420" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,5" opacity="0.4"/>
+<line x1="268" y1="248" x2="268" y2="440" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,7" opacity="0.35"/>
+<line x1="284" y1="248" x2="284" y2="425" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,6" opacity="0.4"/>
+<line x1="300" y1="248" x2="300" y2="435" stroke="#c4a882" stroke-width="1.5" stroke-dasharray="3,5" opacity="0.3"/>
+<rect x="238" y="490" width="92" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="242" y="540" width="84" height="8" rx="4" fill="#888" stroke="#666" stroke-width="1"/>
+<rect x="238" y="690" width="92" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="238" y="730" width="92" height="50" rx="2" fill="#d4b896" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="274" y="750" width="20" height="7" rx="3" fill="#888"/>
+
+<!-- Sekcja 3: szuflady -->
+<rect x="364" y="190" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="260" width="88" height="50" rx="2" fill="#d4b896" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="316" width="88" height="50" rx="2" fill="#d4b896" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="372" width="88" height="50" rx="2" fill="#d4b896" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="428" width="88" height="50" rx="2" fill="#d4b896" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="390" y="280" width="16" height="6" rx="3" fill="#888"/>
+<rect x="390" y="336" width="16" height="6" rx="3" fill="#888"/>
+<rect x="390" y="392" width="16" height="6" rx="3" fill="#888"/>
+<rect x="390" y="448" width="16" height="6" rx="3" fill="#888"/>
+<rect x="364" y="490" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="560" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="630" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="364" y="700" width="88" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+
+<!-- PRAWA ŚCIANA — zabudowa -->
+<rect x="496" y="102" width="204" height="20" fill="#c4a882" stroke="#9a7a45" stroke-width="1.5"/>
+<rect x="496" y="802" width="204" height="18" fill="#c4a882" stroke="#9a7a45" stroke-width="1.5"/>
+<rect x="496" y="820" width="204" height="22" fill="#b8895a" stroke="#9a7a45" stroke-width="1"/>
+<rect x="680" y="102" width="20" height="720" fill="#c4a882" stroke="#9a7a45" stroke-width="1.5"/>
+<!-- drążek prawa ściana -->
+<rect x="500" y="240" width="176" height="9" rx="4" fill="#888" stroke="#666" stroke-width="1"/>
+<rect x="500" y="190" width="176" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<!-- ubrania prawa -->
+<line x1="516" y1="249" x2="516" y2="490" stroke="#c4a882" stroke-width="2" stroke-dasharray="3,6" opacity="0.4"/>
+<line x1="540" y1="249" x2="540" y2="510" stroke="#c4a882" stroke-width="2" stroke-dasharray="3,8" opacity="0.35"/>
+<line x1="564" y1="249" x2="564" y2="480" stroke="#c4a882" stroke-width="2" stroke-dasharray="3,6" opacity="0.3"/>
+<line x1="588" y1="249" x2="588" y2="500" stroke="#c4a882" stroke-width="2" stroke-dasharray="3,7" opacity="0.35"/>
+<line x1="612" y1="249" x2="612" y2="485" stroke="#c4a882" stroke-width="2" stroke-dasharray="3,5" opacity="0.3"/>
+<line x1="636" y1="249" x2="636" y2="495" stroke="#c4a882" stroke-width="2" stroke-dasharray="3,6" opacity="0.3"/>
+<rect x="500" y="540" width="176" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+<rect x="500" y="700" width="176" height="12" fill="#ddd0bc" stroke="#9a7a45" stroke-width=".8"/>
+
+<!-- Lustro na ścianie prawej -->
+<rect x="506" y="590" width="170" height="100" rx="4" fill="#c8d8e8" stroke="#9a7a45" stroke-width="1" opacity="0.35"/>
+<rect x="510" y="594" width="162" height="92" rx="2" fill="none" stroke="#fff" stroke-width="0.5" opacity="0.4"/>
+
+<!-- LED -->
+<rect x="96" y="102" width="584" height="5" rx="2" fill="#f5e8c0" opacity="0.35"/>
+</svg>
