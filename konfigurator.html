@@ -131,7 +131,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
 @media(max-width:680px){.k1-split{grid-template-columns:1fr;width:100%;margin-left:0;height:auto}}
 .k1-lewa{background:var(--beige-200);overflow:hidden;height:100%}
 @media(max-width:680px){.k1-lewa{height:240px;border-radius:var(--r-md);margin-bottom:1rem}}
-.k1-render{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .25s ease;position:absolute;top:0;left:0}
+.k1-render{width:100%;height:100%;background-size:cover;background-position:center;background-repeat:no-repeat;transition:opacity .25s ease;position:absolute;top:0;left:0}
 .k1-render-wrap{position:relative;width:100%;height:100%;background:var(--beige-200)}
 @media(max-width:680px){.k1-render-wrap{height:240px}}
 .k1-render-label{position:absolute;bottom:16px;left:16px;background:rgba(26,26,22,.72);backdrop-filter:blur(4px);border-radius:6px;padding:5px 10px;font-size:11px;color:rgba(240,235,226,.85);letter-spacing:.04em;font-weight:500}
@@ -402,8 +402,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--brown-400)!important;
     <!-- LEWA — render aktywnego typu -->
     <div class="k1-lewa">
       <div class="k1-render-wrap">
-        <img id="k1-render-img" class="k1-render" src="szafa__1_.jpg" alt=""/>
-        <div class="k1-render-label" id="k1-render-label">Garderoba</div>
+        <div id="k1-render-img" class="k1-render"></div>
+        <div class="k1-render-label" id="k1-render-label">Szafa wnękowa</div>
       </div>
     </div>
     <!-- PRAWA — karty + opcje -->
@@ -1270,7 +1270,7 @@ function ustawRender(typ) {
   if(!el || imgs.length === 0) return
   el.style.opacity = '0'
   setTimeout(() => {
-    el.src = imgs[0]
+    el.style.backgroundImage = 'url(' + imgs[0] + ')'
     el.style.opacity = '1'
     if(lbl) lbl.textContent = RENDER_NAZWY[typ] || ''
   }, 150)
@@ -1279,7 +1279,7 @@ function ustawRender(typ) {
     renderTimer = setInterval(() => {
       renderIdx = (renderIdx + 1) % imgs.length
       el.style.opacity = '0'
-      setTimeout(() => { el.src = imgs[renderIdx]; el.style.opacity = '1' }, 150)
+      setTimeout(() => { el.style.backgroundImage = 'url(' + imgs[renderIdx] + ')'; el.style.opacity = '1' }, 150)
     }, 3000)
   }
 }
