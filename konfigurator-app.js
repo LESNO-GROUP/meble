@@ -42,6 +42,7 @@ function defaultState(){
     handle:'galka-spot', handleColor:'czarny', handlePrice:14,
     previewView:'front',
     matTone:'all',
+    band:null,             // {position:'top'|'bottom', h:300, from:0, to:1} — przelotowa półka
     lead:{name:'',email:'',phone:'',city:'',notes:'',consent:false},
   };
 }
@@ -102,6 +103,7 @@ function loadState(){
         if(!parsed.slidingProfileColor) parsed.slidingProfileColor='aluminium';
         if(!parsed.slidingFill) parsed.slidingFill='plyta';
         if(!parsed.slidingSplits) parsed.slidingSplits={count:2, fills:['lustro','plyta']};
+        if(typeof parsed.band === 'undefined') parsed.band = null;
         if(!parsed.leg) parsed.leg='gtv-dak27';
         if(!parsed.legColor) parsed.legColor='czarna';
         // handle migrations — old set → new set
@@ -199,6 +201,14 @@ function priceBreakdown(){
     });
   });
   const fronts_m2_full = (w*h)/1e6;
+  // przelotowa półka — dodatkowa deska (szer. obejmowanych sekcji × głęb.)
+  if(STATE.band){
+    let bandW = 0;
+    for(let i=STATE.band.from; i<=STATE.band.to && i<STATE.sections.length; i++){
+      bandW += STATE.sections[i].w;
+    }
+    shelf_m2 += (bandW/1000)*(d/1000);
+  }
   let frontCount, fronts_m2;
   if(STATE.frontMode==='sliding'){
     frontCount = Math.min(4, Math.max(2, STATE.sections.length));
@@ -227,8 +237,8 @@ function priceBreakdown(){
   const cuttingCost = cuttingMb * (PRICING.cuttingPerMb || 0);
   const edgingCost  = edgingMb  * (PRICING.edgingPerMb  || 0);
 
-  // 5. Robocizna
-  const laborCost = board_m2 * (PRICING.laborPerSqm || 0);
+  // 5. Robocizna — m² zużytej płyty (z odpadem)
+  const laborCost = board_m2 * (1 + waste) * (PRICING.laborPerSqm || 0);
 
   // 6. Designe ryczałt
   const designCost = PRICING.designFee || 0;
@@ -237,7 +247,13 @@ function priceBreakdown(){
   let hardwareCost = 0;
   if(STATE.frontMode==='hinged'){
     const hinge = HINGES.find(h=>h.id===STATE.hinges) || HINGES[0];
-    hardwareCost += frontCount * 2 * (hinge.price||0); // 2 zawiasy / front
+    // liczba zawiasów zależna od wysokości frontu (per sekcja z frontem)
+    // wysokość frontu liczona od korpusu (niezależnie od cokołu/nóżek)
+    STATE.sections.forEach((s,si)=>{
+      if(!STATE.sectionFronts[si]) return;
+      const frontH = (STATE.dim.h - 40) - (bandSpans(si) ? STATE.band.h : 0);
+      hardwareCost += hingeCount(frontH) * (hinge.price||0);
+    });
   }
   if(STATE.frontMode==='sliding'){
     const prof = SLIDING_PROFILES.find(p=>p.id===STATE.slidingProfile) || SLIDING_PROFILES[0];
@@ -264,6 +280,8 @@ function priceBreakdown(){
     const leg = LEGS.find(l=>l.id===STATE.leg);
     if(leg) hardwareCost += 4 * (leg.price||0);
   }
+  // cokoł — dopłata stała
+  if(STATE.base==='cokol') hardwareCost += 25;
   // handles — tylko dla frontów uchylnych
   let handleCost = 0;
   if(STATE.frontMode !== 'sliding'){
@@ -520,8 +538,40 @@ function renderLegPicker(){
   }
 }
 function effectiveInteriorH(){ return STATE.dim.h - 40 - baseOffset(); }
+// liczba zawiasów na front wg wysokości (mm)
+function hingeCount(hMm){
+  if(hMm <= 900) return 2;
+  if(hMm <= 1600) return 3;
+  if(hMm <= 2000) return 4;
+  if(hMm <= 2400) return 5;
+  return 6;
+}
+// ── Przelotowa półka (band) ─────────────────────────────────
+function bandSpans(si){
+  const b = STATE.band;
+  return b && si >= b.from && si <= b.to;
+}
+function sectionInteriorH(si){
+  // wysokość użyteczna danej sekcji (zmniejszona o pas jeśli go obejmuje)
+  return effectiveInteriorH() - (bandSpans(si) ? STATE.band.h : 0);
+}
+function clampBand(){
+  const b = STATE.band;
+  if(!b) return;
+  const n = STATE.sections.length;
+  b.from = Math.max(0, Math.min(b.from|0, n-1));
+  b.to   = Math.max(b.from, Math.min(b.to|0, n-1));
+  // pas musi obejmować min. 2 sekcje
+  if(b.to === b.from){
+    if(b.to < n-1) b.to++; else if(b.from > 0) b.from--;
+  }
+  // wysokość pasa nie większa niż połowa wnętrza
+  const maxH = Math.floor(effectiveInteriorH()*0.5);
+  b.h = Math.max(100, Math.min(b.h||300, maxH));
+}
 function normalizeShelfHeights(){
-  STATE.sections.forEach(s=>{
+  if(STATE.band) clampBand();
+  STATE.sections.forEach((s,si)=>{
     const polki = s.items.filter(it=>it.type==='polka');
     if(!polki.length) return;
     const autoP = polki.filter(p=>!p.manual);
@@ -530,7 +580,7 @@ function normalizeShelfHeights(){
       if(it.type==='polka' && !it.manual) return a;
       return a + (Number(it.h)||0);
     },0);
-    const remain = Math.max(20*autoP.length, effectiveInteriorH() - fixed);
+    const remain = Math.max(20*autoP.length, sectionInteriorH(si) - fixed);
     const h = Math.max(20, Math.floor(remain / autoP.length));
     autoP.forEach(p=> p.h = h);
   });
@@ -579,6 +629,103 @@ function renderSections(){
     list.appendChild(card);
   });
   bindSectionEvents();
+  renderBand();
+}
+
+// ── Przelotowa półka — UI ───────────────────────────────────
+function renderBand(){
+  const el = document.getElementById('bandBlock');
+  if(!el) return;
+  const n = STATE.sections.length;
+  const b = STATE.band;
+  if(n < 2){
+    el.innerHTML = `<div class="band-head"><div><div class="band-title">Przelotowa półka</div><div class="band-sub">Dostępna przy 2+ sekcjach — łączy skrajną górę lub dół kilku sekcji jedną deską.</div></div></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="band-head">
+      <div>
+        <div class="band-title">Przelotowa półka</div>
+        <div class="band-sub">Jedna deska na całą szerokość wybranych sekcji — u góry lub u dołu.</div>
+      </div>
+      <div class="band-toggle">
+        <button data-band="off" class="${!b?'on':''}">Brak</button>
+        <button data-band="on" class="${b?'on':''}">Włącz</button>
+      </div>
+    </div>
+    ${b ? `
+    <div class="band-cfg">
+      <div class="band-row">
+        <label>Położenie</label>
+        <div class="band-pos">
+          <button data-pos="top" class="${b.position==='top'?'on':''}">Górna</button>
+          <button data-pos="bottom" class="${b.position==='bottom'?'on':''}">Dolna</button>
+        </div>
+      </div>
+      <div class="band-row">
+        <label>Wysokość pasa</label>
+        <input type="number" id="bandH" value="${b.h}" min="100" max="${Math.floor(effectiveInteriorH()*0.5)}" step="10"/>
+        <span class="unit" style="font-size:.78rem;color:var(--ink-mute)">mm</span>
+      </div>
+      <div class="band-row">
+        <label>Obejmuje sekcje</label>
+        <div class="band-span">
+          ${STATE.sections.map((s,i)=>`<button data-span="${i}" class="${i>=b.from&&i<=b.to?'on':''}" title="Sekcja ${i+1}">${i+1}</button>`).join('')}
+        </div>
+      </div>
+      <div class="band-sub" style="margin-top:-.2rem">Klikaj numery, by dodać sekcję na brzegu zakresu lub odznaczyć skrajną. Minimum 2 sąsiednie.</div>
+    </div>` : ''}
+  `;
+  // toggle on/off
+  el.querySelectorAll('[data-band]').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(btn.dataset.band==='on' && !STATE.band){
+        STATE.band = {position:'top', h:300, from:0, to:Math.min(1,n-1)};
+        clampBand();
+      } else if(btn.dataset.band==='off'){
+        STATE.band = null;
+      }
+      renderSections(); renderPreview(); updatePrice(); saveState();
+    };
+  });
+  if(!b) return;
+  // position
+  el.querySelectorAll('[data-pos]').forEach(btn=>{
+    btn.onclick = ()=>{ STATE.band.position = btn.dataset.pos; renderSections(); renderPreview(); updatePrice(); saveState(); };
+  });
+  // height
+  const hInp = document.getElementById('bandH');
+  if(hInp) hInp.addEventListener('input', ()=>{
+    STATE.band.h = Math.max(100, Number(hInp.value)||300);
+    clampBand();
+    renderPreview(); updatePrice(); saveState();
+  });
+  // span — click a section number to extend/shrink the contiguous range
+  el.querySelectorAll('[data-span]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const i = +btn.dataset.span;
+      const cur = STATE.band;
+      const inRange = i>=cur.from && i<=cur.to;
+      const len = cur.to - cur.from + 1;
+      if(!inRange){
+        // poza zakresem — rozszerz do klikniętej sekcji (zawsze ciągły)
+        if(i < cur.from) cur.from = i; else cur.to = i;
+      } else if(i===cur.from && i===cur.to){
+        // nic — pojedyncza (nie powinno wystąpić)
+      } else if(i===cur.from){
+        // klik lewej krawędzi — odznacz (zwęź z lewej), o ile zostaną ≥2
+        if(len>2) cur.from = i+1;
+      } else if(i===cur.to){
+        // klik prawej krawędzi — odznacz (zwęź z prawej)
+        if(len>2) cur.to = i-1;
+      } else {
+        // klik w środku zakresu — przytnij od bliższej strony
+        if(i - cur.from <= cur.to - i) cur.from = i; else cur.to = i;
+      }
+      clampBand();
+      renderSections(); renderPreview(); updatePrice(); saveState();
+    };
+  });
 }
 function renderItemRow(si,ii,it){
   const t = ITEM_TYPES[it.type] || ITEM_TYPES.polka;
@@ -1377,28 +1524,57 @@ function renderPreview(){
 
   const totalW = STATE.sections.reduce((a,s)=>a+s.w,0)||1;
   let cx = x0;
+  const band = STATE.band;
+  const bandPx = band ? band.h*scale : 0;
 
   // sliding doors overlay handled after sections
   STATE.sections.forEach((s,si)=>{
     const sw = (s.w/totalW)*W;
+    // przesunięcie sekcji jeśli obejmuje ją pas poziomy
+    const spanned = bandSpans(si);
+    let secY = y0, secH = H;
+    if(spanned && band){
+      if(band.position==='top'){ secY = y0 + bandPx; secH = H - bandPx; }
+      else { secY = y0; secH = H - bandPx; }
+    }
     if(STATE.previewView==='open'){
-      drawInterior(s,cx,y0,sw,H,matC,dark,content=>'');
-      content += drawInteriorContent(s,cx,y0,sw,H,matC,dark);
+      drawInterior(s,cx,secY,sw,secH,matC,dark,content=>'');
+      content += drawInteriorContent(s,cx,secY,sw,secH,matC,dark);
     } else {
       // front view
       const hasFront = STATE.frontMode==='sliding' ? false : STATE.sectionFronts[si];
       if(hasFront){
-        content += drawFront(s,cx,y0,sw,H,matF,darkF,si);
+        content += drawFront(s,cx,secY,sw,secH,matF,darkF,si);
       } else {
-        content += drawInteriorContent(s,cx,y0,sw,H,matC,dark);
+        content += drawInteriorContent(s,cx,secY,sw,secH,matC,dark);
       }
     }
     if(si<STATE.sections.length-1){
-      content += `<line x1="${cx+sw}" y1="${y0}" x2="${cx+sw}" y2="${y0+H}" stroke="${dark}" stroke-width="1"/>`;
+      content += `<line x1="${cx+sw}" y1="${secY}" x2="${cx+sw}" y2="${secY+secH}" stroke="${dark}" stroke-width="1"/>`;
     }
     content += `<text x="${cx+sw/2}" y="${y0+H+16}" font-family="JetBrains Mono" font-size="9" fill="#6a6a62" text-anchor="middle">${Math.round(s.w)}mm</text>`;
     cx += sw;
   });
+
+  // ── Przelotowa półka (band) — rysowana ponad sekcjami ──
+  if(band && STATE.frontMode!=='sliding'){
+    // oblicz X-zakres obejmowanych sekcji
+    let bx0 = x0, accW = 0;
+    for(let i=0;i<band.from;i++) accW += (STATE.sections[i].w/totalW)*W;
+    bx0 = x0 + accW;
+    let bw = 0;
+    for(let i=band.from;i<=band.to;i++) bw += (STATE.sections[i].w/totalW)*W;
+    const by = band.position==='top' ? y0 : y0 + H - bandPx;
+    // tło pasa (lekko cieplejsze) + ramka
+    content += `<rect x="${bx0}" y="${by}" width="${bw}" height="${bandPx}" fill="${shade(fill,0.03)}" stroke="${dark}" stroke-width="1"/>`;
+    // linia półki dzieląca pas od sekcji
+    const shelfY = band.position==='top' ? by+bandPx : by;
+    content += `<line x1="${bx0}" y1="${shelfY}" x2="${bx0+bw}" y2="${shelfY}" stroke="${detail}" stroke-width="2"/>`;
+    // delikatna pozioma linia w środku pasa (sugestia przestrzeni)
+    content += `<line x1="${bx0+6}" y1="${by+bandPx/2}" x2="${bx0+bw-6}" y2="${by+bandPx/2}" stroke="${shade(detail,0.5)}" stroke-width=".5" stroke-dasharray="4 4" opacity=".5"/>`;
+    // etykieta
+    content += `<text x="${bx0+bw/2}" y="${by+bandPx/2+3}" font-family="JetBrains Mono" font-size="8.5" fill="#6a6a62" text-anchor="middle">PÓŁKA PRZELOTOWA · ${band.h} mm</text>`;
+  }
 
   // Base / legs overlay — visible plinth or legs at the bottom region of the cabinet
   const baseMm = baseOffset();
@@ -1589,6 +1765,10 @@ function drawInteriorContent(s,x,y,sw,sh,mat,dark){
     if(it.type==='polka'){
       // top line is the shelf
       out += `<line x1="${x+4}" y1="${y1}" x2="${x+sw-4}" y2="${y1}" stroke="${dark}" stroke-width=".9"/>`;
+      // wariant z pionową przegródką — pionowa kreska na środku pola tej półki
+      if(it.variant==='przegroda'){
+        out += `<line x1="${x+sw/2}" y1="${y0}" x2="${x+sw/2}" y2="${y1}" stroke="${dark}" stroke-width=".9"/>`;
+      }
     } else if(it.type==='drazek'){
       const midY = (y0+y1)/2;
       out += `<line x1="${x+8}" y1="${y0+10}" x2="${x+sw-8}" y2="${y0+10}" stroke="${dark}" stroke-width="2"/>`;
@@ -2000,6 +2180,7 @@ function buildOrderSpec(refNo){
       uneven_walls: !!STATE.uneven,
       base: baseTxt,
       sections_count: STATE.sections.length,
+      band: STATE.band ? `Przelotowa półka ${STATE.band.position==='top'?'górna':'dolna'} ${STATE.band.h} mm — sekcje ${STATE.band.from+1}–${STATE.band.to+1}` : '—',
       sections,
     },
     materials: {
@@ -2086,6 +2267,7 @@ function buildSpecHTML(refNo){
   ${s.furniture.uneven_walls ? TR('Ściany', '<strong style="color:#a8552f">krzywe — wymaga kontaktu</strong>') : ''}
   ${TR('Osadzenie', s.furniture.base)}
   ${TR('Liczba sekcji', s.furniture.sections_count)}
+  ${s.furniture.band && s.furniture.band !== '—' ? TR('Przelotowa półka', s.furniture.band) : ''}
   ${TR('Dekor korpusu', corpusName)}
   ${TR('Dekor frontów', frontsName)}
   ${frBlock}
@@ -2312,6 +2494,7 @@ function renderSummary(){
         <div class="ss-kv"><span class="ss-k">Typ</span><span class="ss-v">${STATE.typeName}</span></div>
         <div class="ss-kv"><span class="ss-k">Wymiary</span><span class="ss-v mono">${w} × ${h} × ${d} mm</span></div>
         <div class="ss-kv"><span class="ss-k">Osadzenie</span><span class="ss-v">${baseTxt}</span></div>
+        ${STATE.band ? `<div class="ss-kv"><span class="ss-k">Przelotowa półka</span><span class="ss-v">${STATE.band.position==='top'?'Górna':'Dolna'} ${STATE.band.h} mm · sekcje ${STATE.band.from+1}–${STATE.band.to+1}</span></div>` : ''}
         ${STATE.uneven ? `<div class="ss-kv"><span class="ss-k">Ściany</span><span class="ss-v" style="color:var(--clay)">krzywe — kontakt techniczny</span></div>` : ''}
       </div>
 
