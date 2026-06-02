@@ -346,6 +346,7 @@
   .acc-name{flex:1;font-size:.86rem}
   .acc-brand{font-family:var(--ff-mono);font-size:.62rem;color:var(--ink-mute);letter-spacing:.04em}
   .acc-price{font-family:var(--ff-mono);font-size:.74rem;color:var(--ink-mute)}
+  .acc-note{display:inline-block;margin-left:.5rem;font-family:var(--ff-mono);font-size:.6rem;letter-spacing:.04em;color:var(--accent);background:var(--paper-2);padding:.1rem .4rem;border-radius:2px;text-transform:uppercase}
 
   /* ── STEP 5 — summary ── */
   .sum-card{background:var(--card);border:1px solid var(--line);border-radius:2px;padding:1.25rem;margin-bottom:1.25rem}
@@ -424,6 +425,7 @@
   /* base (cokol/podloga/nozki) */
   .base-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
   .base-card{cursor:pointer;border:1px solid var(--line);border-radius:2px;background:var(--card);overflow:hidden;transition:all .15s;display:flex;flex-direction:column}
+  .base-card[hidden]{display:none !important}
   .base-card:hover{border-color:var(--ink-mute);transform:translateY(-1px)}
   .base-card.sel{border-color:var(--ink);outline:1px solid var(--ink);outline-offset:-2px}
   .base-img{aspect-ratio:1.2/1;background:var(--paper-2);display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -714,6 +716,14 @@
               <div class="base-price mono">w cenie</div>
             </div>
           </div>
+          <div class="base-card" data-base="wiszacy" hidden>
+            <div class="base-img"><img src="assets/types/wiszacy.png" alt="Wiszący"/></div>
+            <div class="base-info">
+              <div class="base-name">Wiszący</div>
+              <div class="base-desc">Mebel zawieszony na ścianie (na stelażu)</div>
+              <div class="base-price mono">w cenie</div>
+            </div>
+          </div>
           <div class="base-card" data-base="nozki">
             <div class="base-img base-img--placeholder">
               <svg viewBox="0 0 80 80" fill="none" stroke="#1a1a17" stroke-width="1.4"><rect x="14" y="14" width="52" height="40"/><line x1="22" y1="54" x2="22" y2="68"/><line x1="58" y1="54" x2="58" y2="68"/><line x1="10" y1="68" x2="70" y2="68"/></svg>
@@ -748,9 +758,9 @@
         <div class="f-label" style="margin-top:1.5rem">Oświetlenie</div>
         <div class="acc-row" data-acc="oswietlenie">
           <div class="acc-checkbox"><svg viewBox="0 0 12 12"><path d="M2 6l3 3 5-6"/></svg></div>
-          <div class="acc-name">Oświetlenie LED w profilu</div>
+          <div class="acc-name">Oświetlenie LED w profilu <span class="acc-note">wycena indywidualna</span></div>
           <div class="acc-brand">GTV</div>
-          <div class="acc-price">+180 zł / m</div>
+          <div class="acc-price">od +100 zł / m</div>
         </div>
       </div>
 
@@ -930,7 +940,7 @@
 })();
 </script>
 
-<script src="konfigurator-data.js?v=163"></script>
-<script src="konfigurator-app.js?v=163"></script>
+<script src="konfigurator-data.js?v=169"></script>
+<script src="konfigurator-app.js?v=169"></script>
 </body>
 </html>

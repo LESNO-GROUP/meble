@@ -282,6 +282,19 @@
   .cat-name{font-family:var(--ff-serif);font-size:1.7rem;font-weight:400;line-height:1;margin-top:.3rem}
   .cat-range{font-family:var(--ff-mono);font-size:.72rem;opacity:.7;margin-top:.4rem;letter-spacing:.04em}
   @media(max-width:900px){.cat-grid{grid-template-columns:1fr 1fr}}
+  /* Custom / special projects banner */
+  .custom-band{margin-top:4rem;padding-top:3.5rem;border-top:1px solid var(--line)}
+  .custom-band-inner{display:flex;align-items:center;justify-content:space-between;gap:2.5rem;flex-wrap:wrap}
+  .custom-band-text{flex:1;min-width:280px;max-width:680px}
+  .custom-band-label{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:.7rem}
+  .custom-band h3{font-family:var(--ff-serif);font-size:clamp(1.7rem,3.2vw,2.5rem);font-weight:400;line-height:1.1;margin-bottom:.7rem}
+  .custom-band h3 em{font-style:italic;color:var(--accent)}
+  .custom-band p{font-size:1rem;line-height:1.6;color:var(--ink-mute)}
+  .custom-band p strong{color:var(--ink);font-weight:600}
+  .custom-band-cta{flex-shrink:0;display:inline-flex;align-items:center;gap:.6rem;background:var(--ink);color:var(--paper);padding:.95rem 1.6rem;border-radius:2px;font-size:.92rem;font-weight:500;text-decoration:none;transition:background .15s}
+  .custom-band-cta:hover{background:var(--accent)}
+  .custom-band-cta svg{width:16px;height:16px}
+  @media(max-width:680px){.custom-band-cta{width:100%;justify-content:center}}
 
   /* ── SYSTEM (why diy) ── */
   .system{background:var(--ink);color:var(--paper);max-width:none;position:relative}
@@ -590,6 +603,21 @@
         <div class="cat-range mono">do sufitu / niska</div>
       </div>
     </a>
+  </div>
+
+  <!-- Custom / special projects banner -->
+  <div class="custom-band">
+    <div class="custom-band-inner">
+      <div class="custom-band-text">
+        <div class="custom-band-label mono">Poza katalogiem</div>
+        <h3>Robimy też <em>projekty specjalne.</em></h3>
+        <p>Nietypowy kształt, zabudowa pod schodami, <strong>skosy</strong> na poddaszu, indywidualny pomysł od architekta — wykonujemy zabudowy spoza standardowego konfiguratora. Prześlij rzut, zdjęcie lub szkic, a my wycenimy i zaprojektujemy pod Twoją przestrzeń.</p>
+      </div>
+      <a href="konfigurator.html#kontakt" class="custom-band-cta">
+        Wyślij zapytanie
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
   </div>
 </section>
 

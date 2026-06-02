@@ -242,6 +242,8 @@ function priceBreakdown(){
 
   // 6. Designe ryczałt
   const designCost = PRICING.designFee || 0;
+  // 6b. Plecy mebla (HDF/płyta) — stała dopłata
+  const backCost = PRICING.backPanel || 0;
 
   // 7. Akcesoria — zawiasy, nóżki, uchwyty, oświetlenie, profile przesuwne
   let hardwareCost = 0;
@@ -282,6 +284,8 @@ function priceBreakdown(){
   }
   // cokoł — dopłata stała
   if(STATE.base==='cokol') hardwareCost += 25;
+  // wiszący — montaż na stelażu/wspornikach
+  if(STATE.base==='wiszacy') hardwareCost += 29;
   // handles — tylko dla frontów uchylnych
   let handleCost = 0;
   if(STATE.frontMode !== 'sliding'){
@@ -304,7 +308,7 @@ function priceBreakdown(){
     hardwareCost += (w/1000) * (PRICING.lightingPerM || 0);
   }
 
-  const subtotal = materialCost + cuttingCost + edgingCost + laborCost + designCost + accCost + hardwareCost;
+  const subtotal = materialCost + cuttingCost + edgingCost + laborCost + designCost + backCost + accCost + hardwareCost;
   const total = Math.max(PRICING.minOrder || 0, Math.round(subtotal));
   const vat = PRICING.vat || 0.23;
   const netto = Math.round(total / (1+vat));
@@ -320,6 +324,7 @@ function priceBreakdown(){
     edgingCost:   Math.round(edgingCost),
     laborCost:    Math.round(laborCost),
     designCost,
+    backCost,
     accCost:      Math.round(accCost),
     hardwareCost: Math.round(hardwareCost),
     handleCost:   Math.round(handleCost),
@@ -401,20 +406,25 @@ function renderTypes(){
     c.onclick = ()=>{
       STATE.type = t.id; STATE.typeName = t.name;
       // presets
-      if(t.id==='regal'){ STATE.dim={w:1600,h:2200,d:350}; STATE.sections=[{w:800,items:defaultItems('regal','polki')},{w:800,items:defaultItems('regal','polki')}]; STATE.sectionFronts=[false,false]; STATE.frontMode='hinged'; }
-      else if(t.id==='lazienka'){ STATE.dim={w:1200,h:2100,d:300}; STATE.sections=[{w:600,items:defaultItems('lazienka','polki')},{w:600,items:defaultItems('lazienka','polki')}]; STATE.sectionFronts=[true,true]; }
+      if(t.id==='regal'){ STATE.dim={w:1600,h:2200,d:350}; STATE.sections=[
+        {w:533,items:[{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350}]},
+        {w:533,items:[{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350}]},
+        {w:534,items:[{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350},{type:'polka',h:350}]},
+      ]; STATE.sectionFronts=[false,false,false]; STATE.frontMode='hinged'; }
+      else if(t.id==='lazienka'){ STATE.dim={w:1200,h:2100,d:300}; STATE.sections=[{w:600,items:defaultItems('lazienka','polki')},{w:600,items:defaultItems('lazienka','polki')}]; STATE.sectionFronts=[true,true]; STATE.base='wiszacy'; }
       else if(t.id==='garderoba'){ STATE.dim={w:2400,h:2700,d:600}; STATE.sections=[
         {w:600,items:defaultItems('garderoba','drazek')},
         {w:600,items:defaultItems('garderoba','szuflady')},
         {w:600,items:defaultItems('garderoba','polki')},
         {w:600,items:defaultItems('garderoba','drazek')},
-      ]; STATE.sectionFronts=[true,true,true,true]; }
+      ]; STATE.sectionFronts=[false,false,false,false]; STATE.frontMode='hinged'; }
       else { STATE.dim={w:2000,h:2600,d:600}; STATE.sections=[{w:666,items:defaultItems('szafa','polki')},{w:667,items:defaultItems('szafa','drazek')},{w:667,items:defaultItems('szafa','szuflady')}]; STATE.sectionFronts=[true,true,true]; }
       // sync dim inputs
       document.getElementById('w').value=STATE.dim.w;
       document.getElementById('h').value=STATE.dim.h;
       document.getElementById('d').value=STATE.dim.d;
       renderTypes(); renderPreview(); updatePrice(); saveState();
+      if(typeof syncBaseVisibility==='function') syncBaseVisibility();
     };
     grid.appendChild(c);
   });
@@ -1617,6 +1627,13 @@ function renderPreview(){
     // just a thicker floor line
     content += `<line x1="${x0-10}" y1="${y0+H}" x2="${x0+W+10}" y2="${y0+H}" stroke="${dark}" stroke-width="1.4"/>`;
   }
+  else if(STATE.base==='wiszacy'){
+    // floating — gap below cabinet + floor line lower down
+    const gap = Math.min(40, H*0.06);
+    content += `<line x1="${x0-10}" y1="${y0+H+gap}" x2="${x0+W+10}" y2="${y0+H+gap}" stroke="${dark}" stroke-width="1.2" stroke-dasharray="6 4" opacity=".6"/>`;
+    // shadow under cabinet
+    content += `<ellipse cx="${x0+W/2}" cy="${y0+H+gap-2}" rx="${W*0.42}" ry="3" fill="rgba(0,0,0,0.12)"/>`;
+  }
 
   // sliding doors — front view only
   if(STATE.previewView==='front' && STATE.frontMode==='sliding'){
@@ -2131,6 +2148,7 @@ function buildOrderSpec(refNo){
   const baseTxt = (()=>{
     if(STATE.base==='cokol') return 'Cokoł 100 mm';
     if(STATE.base==='podloga') return 'Bezpośrednio na podłodze';
+    if(STATE.base==='wiszacy') return 'Wiszący (na stelażu)';
     if(STATE.base==='nozki' && typeof LEGS!=='undefined'){
       const l = LEGS.find(x=>x.id===STATE.leg) || LEGS[0];
       if(!l) return 'Nóżki';
@@ -2211,6 +2229,7 @@ function buildOrderSpec(refNo){
       edging: pb.edgingCost,
       labor: pb.laborCost,
       design: pb.designCost,
+      back: pb.backCost,
       sections_inserts: pb.accCost,
       hardware: pb.hardwareCost,
       total_gross: pb.total,
@@ -2277,13 +2296,9 @@ function buildSpecHTML(refNo){
   <tr><td colspan="2" style="padding:8px 0">${sections}</td></tr>
 
   <tr><td colspan="2"><h3 style="margin:14px 0 6px;font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;border-bottom:1px solid #d9d3c4;padding-bottom:4px">Kosztorys (orientacyjnie)</h3></td></tr>
-  ${TR('Materiał (płyta + odpad '+p.waste_pct+'%)', fmtZL(p.material))}
-  ${TR('Cięcie', fmtZL(p.cutting))}
-  ${TR('Obrzeże', fmtZL(p.edging))}
-  ${TR('Robocizna', fmtZL(p.labor))}
+  ${TR('Materiał', fmtZL(p.material + p.cutting + p.edging + p.labor + (p.back||0)))}
   ${TR('Projekt', fmtZL(p.design))}
-  ${TR('Wkłady sekcji', fmtZL(p.sections_inserts))}
-  ${TR('Okucia', fmtZL(p.hardware))}
+  ${TR('Akcesoria', fmtZL(p.sections_inserts + p.hardware))}
   ${TR('Zużycie płyty', p.board_m2.toFixed(2).replace('.',',') + ' m²')}
   <tr><td style="padding:10px 12px;background:#1a1a17;color:#f5f1e8;font-weight:500">CENA NETTO</td><td style="padding:10px 12px;background:#1a1a17;color:#f5f1e8;font-family:'JetBrains Mono',monospace">${fmtZL(p.total_net)}</td></tr>
   <tr><td style="padding:10px 12px;background:#1a1a17;color:#b8915a;font-weight:500">CENA BRUTTO (VAT ${Math.round(p.vat_rate*100)}%)</td><td style="padding:10px 12px;background:#1a1a17;color:#b8915a;font-family:'JetBrains Mono',monospace;font-size:16px">${fmtZL(p.total_gross)}</td></tr>
@@ -2408,6 +2423,7 @@ function renderSummary(){
   const baseTxt = (()=>{
     if(STATE.base==='cokol') return 'Na cokole 100 mm';
     if(STATE.base==='podloga') return 'Bezpośrednio na podłodze';
+    if(STATE.base==='wiszacy') return 'Wiszący (na stelażu)';
     if(STATE.base==='nozki' && typeof LEGS!=='undefined'){
       const l = LEGS.find(x=>x.id===STATE.leg) || LEGS[0];
       if(!l) return 'Na nóżkach';
@@ -2517,13 +2533,9 @@ function renderSummary(){
 
       <div class="ss-block ss-price-block">
         <div class="ss-block-h">Kosztorys (orientacyjnie)</div>
-        <div class="ss-kv"><span class="ss-k">Materiał (płyta + odpad ${Math.round(pb.waste*100)}%)</span><span class="ss-v mono">${fmtPrice(pb.materialCost)}</span></div>
-        <div class="ss-kv"><span class="ss-k">Cięcie</span><span class="ss-v mono">${fmtPrice(pb.cuttingCost)}</span></div>
-        <div class="ss-kv"><span class="ss-k">Obrzeże</span><span class="ss-v mono">${fmtPrice(pb.edgingCost)}</span></div>
-        <div class="ss-kv"><span class="ss-k">Robocizna</span><span class="ss-v mono">${fmtPrice(pb.laborCost)}</span></div>
+        <div class="ss-kv"><span class="ss-k">Materiał</span><span class="ss-v mono">${fmtPrice(pb.materialCost + pb.cuttingCost + pb.edgingCost + pb.laborCost + pb.backCost)}</span></div>
         <div class="ss-kv"><span class="ss-k">Projekt</span><span class="ss-v mono">${fmtPrice(pb.designCost)}</span></div>
-        <div class="ss-kv"><span class="ss-k">Wkłady sekcji</span><span class="ss-v mono">${fmtPrice(pb.accCost)}</span></div>
-        <div class="ss-kv"><span class="ss-k">Okucia${STATE.accessories.oswietlenie?' + LED':''}</span><span class="ss-v mono">${fmtPrice(pb.hardwareCost)}</span></div>
+        <div class="ss-kv"><span class="ss-k">Akcesoria</span><span class="ss-v mono">${fmtPrice(pb.accCost + pb.hardwareCost)}</span></div>
       </div>
     </div>
 
@@ -2641,17 +2653,8 @@ function init(){
     renderSections(); renderPreview(); updatePrice(); saveState();
   });
 
-  // base (cokol/podloga/nozki)
-  document.querySelectorAll('.base-card').forEach(c=>{
-    c.classList.toggle('sel', c.dataset.base===STATE.base);
-    c.addEventListener('click',()=>{
-      STATE.base = c.dataset.base;
-      document.querySelectorAll('.base-card').forEach(x=>x.classList.toggle('sel', x.dataset.base===STATE.base));
-      renderLegPicker();
-      renderSections(); renderPreview(); updatePrice(); saveState();
-    });
-  });
   renderLegPicker();
+  bindBaseCards();
 
   document.getElementById('resetBtn').addEventListener('click',()=>{
     if(confirm('Zacząć od nowa? Stracisz obecne wybory.')){
@@ -2669,5 +2672,29 @@ function init(){
       if(card) card.click();
     }
   }
+}
+function bindBaseCards(){
+  document.querySelectorAll('.base-card').forEach(c=>{
+    c.classList.toggle('sel', c.dataset.base===STATE.base);
+    c.addEventListener('click',()=>{
+      if(c.hidden) return;
+      STATE.base = c.dataset.base;
+      document.querySelectorAll('.base-card').forEach(x=>x.classList.toggle('sel', x.dataset.base===STATE.base));
+      renderLegPicker();
+      renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+  });
+  syncBaseVisibility();
+}
+function syncBaseVisibility(){
+  // wiszący tylko dla łazienki; podłoga ukryta dla łazienki
+  const isBath = STATE.type==='lazienka';
+  const podCard = document.querySelector('.base-card[data-base="podloga"]');
+  const wisCard = document.querySelector('.base-card[data-base="wiszacy"]');
+  if(podCard) podCard.hidden = isBath;
+  if(wisCard) wisCard.hidden = !isBath;
+  if(isBath && STATE.base==='podloga'){ STATE.base='wiszacy'; }
+  if(!isBath && STATE.base==='wiszacy'){ STATE.base='podloga'; }
+  document.querySelectorAll('.base-card').forEach(x=>x.classList.toggle('sel', x.dataset.base===STATE.base));
 }
 document.addEventListener('DOMContentLoaded', init);

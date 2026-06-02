@@ -23,7 +23,10 @@ const TYPES = [
 // ── ITEM TYPES (step 3)
 // `variants` — when present, clicking the item in the section opens a chooser
 const ITEM_TYPES = {
-  'polka':   {name:'Półka',                price:0,   icon:'shelf',      defaultH:300},
+  'polka':   {name:'Półka',                price:0,   icon:'shelf',      defaultH:300, variants:[
+    {id:'zwykla',     name:'Półka zwykła',          price:0,  desc:'Pełna deska na całą szerokość sekcji'},
+    {id:'przegroda',  name:'Półka z przegródką',     price:19, desc:'Podzielona pionowo na środku — część lewa i prawa'},
+  ]},
   'drazek':  {name:'Drążek',               price:49,  icon:'rod',        defaultH:60, variants:[
     {id:'prosty-owal',    name:'Prosty owalny',           price:19,  desc:'Stalowy profil 30×15 mm, chromowany', image:'assets/akcesoria/rod-prosty-owal.png'},
     {id:'prosty-fi25-chrom', name:'Prosty okrągły Ø25',   price:19,  desc:'Drążek okrągły Ø25 mm, chromowany',   image:'assets/akcesoria/rod-fi25-chrom.png'},
@@ -317,20 +320,19 @@ const HANDLES = [
 // ── PRICING
 const PRICING = {
   // Material handled per-decor (cena Kronospan zł/m² na pozycji)
-  laborPerSqm:     75,        // zł / m² płyty zużytej (montaż, projekt)
+  laborPerSqm:     50,        // zł / m² zużytej płyty (z odpadem)
   cuttingPerMb:     3,        // zł / mb cięcia
   edgingPerMb:      7,        // zł / mb obrzeża
   cuttingPerSqm:    5,        // ~mb cięcia na m² płyty (heurystyka)
   edgingPerSqm:     4,        // ~mb obrzeża na m² płyty (heurystyka)
   designFee:      500,        // zł / projekt (ryczałt)
+  backPanel:      100,        // zł / mebel — plecy (HDF/płyta)
   vat:           0.23,        // 23%
   // Odpad płyty wg liczby arkuszy (sheet 2800×2070 ≈ 5.796 m²)
   sheetSqm:     5.796,
   wasteRules: [
-    {maxSheets: 2, rate: 0.30},
-    {maxSheets: 4, rate: 0.25},
-    {maxSheets: Infinity, rate: 0.20},
+    {maxSheets: Infinity, rate: 0.15},
   ],
-  lightingPerM: 180,
+  lightingPerM: 100,
   minOrder:     250,
 };
