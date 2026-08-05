@@ -99,6 +99,7 @@
   .f-title{font-family:var(--ff-serif);font-size:2rem;font-weight:400;line-height:1;letter-spacing:-.005em;margin-bottom:.55rem}
   .f-title em{font-style:italic;color:var(--accent)}
   .f-sub{color:var(--ink-mute);font-size:.9rem;max-width:52ch;margin-bottom:1.5rem;line-height:1.55}
+  .f-note{color:var(--ink-mute);font-size:.82rem;max-width:56ch;margin:-.9rem 0 1.5rem;line-height:1.5;font-style:italic}
   .step-panel{display:none;animation:fadeIn .35s ease}
   .step-panel.active{display:block}
   @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -166,8 +167,8 @@
   .sb-info{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:var(--card);border:1px solid var(--line);border-radius:2px;margin-bottom:.75rem;font-size:.8rem;color:var(--ink-mute)}
   .sb-info strong{color:var(--ink);font-weight:500}
   .sec-list{display:flex;flex-direction:column;gap:.65rem;margin-bottom:.75rem}
-  .sec-card{background:var(--card);border:1px solid var(--line);border-radius:2px;overflow:hidden}
-  .sec-head{display:flex;align-items:center;gap:.65rem;padding:.65rem .85rem;border-bottom:1px solid var(--line-2);background:var(--paper-2)}
+  .sec-card{background:var(--card);border:1px solid var(--line);border-radius:2px}
+  .sec-head{display:flex;align-items:center;gap:.65rem;padding:.65rem .85rem;border-bottom:1px solid var(--line-2);background:var(--paper-2);border-radius:2px 2px 0 0}
   .sec-idx{font-family:var(--ff-mono);font-size:.66rem;color:var(--accent);letter-spacing:.08em}
   .sec-width{display:flex;align-items:center;gap:.3rem;margin-left:auto}
   .sec-width input{width:72px;padding:.4rem .55rem;font-family:var(--ff-mono);font-size:.82rem;border:1px solid var(--line);border-radius:2px;outline:none;text-align:right;background:var(--card)}
@@ -195,6 +196,9 @@
   .sec-foot{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.55rem .85rem;border-top:1px dashed var(--line-2);background:var(--paper-2);position:relative}
   .sec-sum{font-family:var(--ff-mono);font-size:.72rem;color:var(--ink-mute)}
   .sec-sum span{margin-left:.35rem;font-weight:500}
+  .sec-sum-note{font-family:var(--ff-sans);font-size:.66rem;color:var(--ink-mute);opacity:.75;margin-left:.3rem}
+  .shelf-balance{margin-left:.6rem;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.03em;color:var(--accent);text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer}
+  .shelf-balance:hover{color:var(--ink)}
   .add-item-menu{position:relative}
   .add-item-btn{padding:.45rem .75rem;border:1px dashed var(--line);border-radius:2px;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);background:var(--card);transition:all .15s}
   .add-item-btn:hover{border-color:var(--ink);color:var(--ink);border-style:solid}
@@ -611,6 +615,7 @@
         <div class="f-label">Krok 2 — Wymiary główne</div>
         <div class="f-title">Wymiary <em>wnęki.</em></div>
         <div class="f-sub">Zmierz od ściany do ściany. Wszystkie wymiary w milimetrach.</div>
+        <div class="f-note">Podaj głębokość całego mebla (korpus + front). Pamiętaj, że realna głębokość użytkowa będzie mniejsza o front uchylny lub system drzwi przesuwnych.</div>
 
         <div class="dim-row">
           <div class="dim-cell">
@@ -705,7 +710,7 @@
             <div class="base-info">
               <div class="base-name">Na cokole</div>
               <div class="base-desc">100 mm, ukryty pod meblem</div>
-              <div class="base-price mono">+25 zł</div>
+              <div class="base-price mono">w cenie</div>
             </div>
           </div>
           <div class="base-card" data-base="podloga">
@@ -940,7 +945,7 @@
 })();
 </script>
 
-<script src="konfigurator-data.js?v=169"></script>
-<script src="konfigurator-app.js?v=169"></script>
+<script src="konfigurator-data.js?v=171"></script>
+<script src="konfigurator-app.js?v=171"></script>
 </body>
 </html>

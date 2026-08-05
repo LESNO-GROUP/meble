@@ -285,7 +285,7 @@ function priceBreakdown(){
   // cokoł — dopłata stała
   if(STATE.base==='cokol') hardwareCost += 25;
   // wiszący — montaż na stelażu/wspornikach
-  if(STATE.base==='wiszacy') hardwareCost += 29;
+  if(STATE.base==='wiszacy') hardwareCost += 25;
   // handles — tylko dla frontów uchylnych
   let handleCost = 0;
   if(STATE.frontMode !== 'sliding'){
@@ -473,6 +473,8 @@ function balanceSectionWidths(){
   if(STATE.sections.length) STATE.sections[STATE.sections.length-1].w = W - per*(STATE.sections.length-1);
 }
 function sectionItemsSum(s){ return s.items.reduce((a,it)=>a+(Number(it.h)||0),0); }
+function sectionShelfCount(s){ return s.items.filter(it=>it.type==='polka').length; }
+function sectionPhysicalSum(s){ return sectionItemsSum(s) + sectionShelfCount(s)*18; }
 function baseOffset(){
   if(STATE.base==='cokol') return 100;
   if(STATE.base==='nozki'){
@@ -590,20 +592,23 @@ function normalizeShelfHeights(){
       if(it.type==='polka' && !it.manual) return a;
       return a + (Number(it.h)||0);
     },0);
-    const remain = Math.max(20*autoP.length, sectionInteriorH(si) - fixed);
+    const shelfBoards = polki.length * 18; // grubość płyty każdej półki (auto + manual)
+    const remain = Math.max(20*autoP.length, sectionInteriorH(si) - fixed - shelfBoards);
     const h = Math.max(20, Math.floor(remain / autoP.length));
     autoP.forEach(p=> p.h = h);
   });
 }
 
 function renderSections(){
+  normalizeShelfHeights();
   updateSbInfo();
   const list = document.getElementById('secList');
   list.innerHTML = '';
   STATE.sections.forEach((s,si)=>{
     const itemsSum = sectionItemsSum(s);
-    const target = STATE.dim.h - 40; // minus carcass top+bottom
-    const diff = itemsSum - target;
+    const physSum = sectionPhysicalSum(s);
+    const target = sectionInteriorH(si);
+    const diff = physSum - target;
     const status = Math.abs(diff)<=30 ? 'ok' : 'bad';
     const card = document.createElement('div');
     card.className = 'sec-card';
@@ -622,7 +627,7 @@ function renderSections(){
         ${s.items.map((it,ii)=>renderItemRow(si,ii,it)).join('')}
       </div>
       <div class="sec-foot">
-        <div class="sec-sum">Suma wysokości: <span class="${status}">${itemsSum} / ${target} mm</span></div>
+        <div class="sec-sum">Suma wysokości: <span class="${status}">${physSum} / ${target} mm</span> <span class="sec-sum-note">(w tym półki × 18 mm płyty)</span>${sectionShelfCount(s)>1?` <button class="shelf-balance" data-si="${si}" title="Wyrównaj wysokości półek">⇕ Wyrównaj półki</button>`:''}</div>
         <div class="add-item-menu">
           <button class="add-item-btn" data-si="${si}">+ Dodaj element</button>
           <div class="add-item-pop" data-si="${si}">
@@ -795,8 +800,8 @@ function bindSectionEvents(){
       renderPreview(); updatePrice(); saveState();
       // live update sum only
       const card = e.target.closest('.sec-card');
-      const sum = sectionItemsSum(STATE.sections[si]);
-      const target = effectiveInteriorH();
+      const sum = sectionPhysicalSum(STATE.sections[si]);
+      const target = sectionInteriorH(si);
       const el = card.querySelector('.sec-sum span');
       el.textContent = `${sum} / ${target} mm`;
       el.className = Math.abs(sum-target)<=30 ? 'ok' : 'bad';
@@ -806,6 +811,13 @@ function bindSectionEvents(){
     b.addEventListener('click',()=>{
       const si=+b.dataset.si, ii=+b.dataset.ii;
       delete STATE.sections[si].items[ii].manual;
+      renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+  });
+  document.querySelectorAll('.shelf-balance').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const si=+b.dataset.si;
+      STATE.sections[si].items.forEach(it=>{ if(it.type==='polka') delete it.manual; });
       renderSections(); renderPreview(); updatePrice(); saveState();
     });
   });
