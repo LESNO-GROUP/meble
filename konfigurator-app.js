@@ -43,6 +43,7 @@ function defaultState(){
     previewView:'front',
     matTone:'all',
     band:null,             // {position:'top'|'bottom', h:300, from:0, to:1} — przelotowa półka
+    blenda:{left:0, right:0, top:0},  // blendy maskujące (mm, 0 = brak, zakres 20–200)
     lead:{name:'',email:'',phone:'',city:'',notes:'',consent:false},
   };
 }
@@ -104,6 +105,7 @@ function loadState(){
         if(!parsed.slidingFill) parsed.slidingFill='plyta';
         if(!parsed.slidingSplits) parsed.slidingSplits={count:2, fills:['lustro','plyta']};
         if(typeof parsed.band === 'undefined') parsed.band = null;
+        if(!parsed.blenda) parsed.blenda = {left:0, right:0, top:0};
         if(!parsed.leg) parsed.leg='gtv-dak27';
         if(!parsed.legColor) parsed.legColor='czarna';
         // handle migrations — old set → new set
@@ -166,6 +168,86 @@ function shade(hex, factor){
 }
 
 // ────────────────────────────────────────────────────────────
+//  CUT LIST — lista formatek, cięcia i obrzeże
+//  Zwraca: pieces[], pieceCount, cutMb (mb cięć), edgeMb (mb obrzeża)
+// ────────────────────────────────────────────────────────────
+function buildCutList(){
+  const d = STATE.dim.d;
+  const w = cabinetW(), h = cabinetH();
+  const T = 18;                     // grubość płyty
+  const innerH = h - 2*T;           // wysokość w świetle korpusu
+  const pieces = [];
+  const add = (name, pw, ph, qty, edges) => {
+    if(pw<=0 || ph<=0 || qty<=0) return;
+    pieces.push({name, w:Math.round(pw), h:Math.round(ph), qty, edges});
+  };
+
+  // korpus
+  add('Bok korpusu', d, h, 2, 1);                 // obrzeże na krawędzi przedniej (h)
+  add('Wieniec górny', w - 2*T, d, 1, 1);         // obrzeże przód (w)
+  add('Wieniec dolny', w - 2*T, d, 1, 1);
+  // przegrody pionowe między sekcjami
+  const nDiv = Math.max(0, STATE.sections.length - 1);
+  add('Przegroda pionowa', d, innerH, nDiv, 1);
+
+  // półki w sekcjach
+  STATE.sections.forEach(s=>{
+    const shelves = s.items.filter(it=>it.type==='polka');
+    if(shelves.length) add(`Półka (sekcja ${s.w} mm)`, s.w, d, shelves.length, 1);
+    // półki z przegrodą — dodatkowa pionowa przegródka
+    const withDiv = shelves.filter(it=>it.variant==='przegroda').length;
+    if(withDiv) add('Przegroda w półce', d, 250, withDiv, 1);
+  });
+
+  // przelotowa półka
+  if(STATE.band){
+    let bandW = 0;
+    for(let i=STATE.band.from; i<=STATE.band.to && i<STATE.sections.length; i++) bandW += STATE.sections[i].w;
+    if(bandW>0) add('Półka przelotowa', bandW, d, 1, 1);
+  }
+
+  // fronty
+  if(STATE.frontMode==='sliding'){
+    const panels = Math.min(4, Math.max(2, STATE.sections.length));
+    add('Front przesuwny (wkład)', Math.round(w/panels), h, panels, 4);
+  } else {
+    STATE.sections.forEach((s,si)=>{
+      if(!STATE.sectionFronts[si]) return;
+      const fh = (h - 2*T) - (bandSpans(si) ? STATE.band.h : 0);
+      add(`Front uchylny (sekcja ${s.w} mm)`, s.w - 4, fh, 1, 4);
+    });
+  }
+
+  // blendy
+  const bl = STATE.blenda || {left:0,right:0,top:0};
+  if(bl.left)  add('Blenda lewa',  bl.left,  STATE.dim.h, 1, 3);
+  if(bl.right) add('Blenda prawa', bl.right, STATE.dim.h, 1, 3);
+  if(bl.top)   add('Blenda górna', STATE.dim.w, bl.top, 1, 3);
+
+  // plecy (HDF — bez obrzeża)
+  add('Plecy (HDF)', w, h, 1, 0);
+
+  let cutMb = 0, edgeMb = 0, pieceCount = 0;
+  pieces.forEach(p=>{
+    pieceCount += p.qty;
+    // cięcie ≈ obwód formatki
+    cutMb  += p.qty * (2*(p.w + p.h))/1000;
+    // obrzeże: 1 = dłuższa krawędź, 3 = 3 krawędzie, 4 = pełny obwód
+    if(p.edges === 4)      edgeMb += p.qty * (2*(p.w + p.h))/1000;
+    else if(p.edges === 3) edgeMb += p.qty * (p.w + 2*p.h)/1000;
+    else if(p.edges === 1) edgeMb += p.qty * Math.max(p.w, p.h)/1000;
+  });
+
+  return {
+    pieces,
+    pieceCount,
+    cutMb: Math.round(cutMb*10)/10,
+    edgeMb: Math.round(edgeMb*10)/10,
+    cutsCount: pieceCount * 4,   // szacunkowa liczba przejść piły
+  };
+}
+
+// ────────────────────────────────────────────────────────────
 //  PRICING — silnik kosztorysu (brutto)
 //  Składowe:
 //   1. Materiał (płyta) — cena Kronospan / m² × (1 + odpad)
@@ -177,7 +259,8 @@ function shade(hex, factor){
 // ────────────────────────────────────────────────────────────
 function priceBreakdown(){
   normalizeShelfHeights();
-  const {w,h,d} = STATE.dim;
+  const d = STATE.dim.d;
+  const w = cabinetW(), h = cabinetH();
 
   // 1. Powierzchnie płyty
   const carcass_m2 = (2*h*d + 2*w*d + w*h)/1e6;
@@ -218,7 +301,10 @@ function priceBreakdown(){
     const ratio = STATE.sections.length ? frontCount/STATE.sections.length : 0;
     fronts_m2 = fronts_m2_full * ratio;
   }
-  const corpus_m2 = carcass_m2 + shelf_m2;
+  // blendy maskujące — boki (szer × wys mebla) + góra (szer mebla × szer blendy)
+  const bl = STATE.blenda || {left:0,right:0,top:0};
+  const blenda_m2 = ((bl.left||0)*STATE.dim.h + (bl.right||0)*STATE.dim.h + (bl.top||0)*STATE.dim.w)/1e6;
+  const corpus_m2 = carcass_m2 + shelf_m2 + blenda_m2;
   const board_m2 = corpus_m2 + fronts_m2;
 
   // 2. Materiał — cena Kronospana × (1 + odpad)
@@ -231,9 +317,10 @@ function priceBreakdown(){
   const waste = wasteRule ? wasteRule.rate : 0.2;
   const materialCost = (corpus_m2 * (matC.price||0) + fronts_m2 * (matF.price||0)) * (1 + waste);
 
-  // 3. Cięcie + 4. Obrzeże (bez odpadu — cięcia tylko po realnych elementach)
-  const cuttingMb = board_m2 * (PRICING.cuttingPerSqm || 5);
-  const edgingMb  = board_m2 * (PRICING.edgingPerSqm  || 3);
+  // 3. Cięcie + 4. Obrzeże — z realnej listy formatek
+  const cut = buildCutList();
+  const cuttingMb = cut.cutMb;
+  const edgingMb  = cut.edgeMb;
   const cuttingCost = cuttingMb * (PRICING.cuttingPerMb || 0);
   const edgingCost  = edgingMb  * (PRICING.edgingPerMb  || 0);
 
@@ -331,6 +418,7 @@ function priceBreakdown(){
     total,        // brutto
     netto,        // netto
     vat,
+    cut,          // lista formatek + mb cięć/obrzeża
   };
 }
 function computePrice(){ return priceBreakdown().total; }
@@ -448,6 +536,22 @@ function bindDimensions(){
   const ht = document.getElementById('helpToggle');
   const hb = document.getElementById('helpBody');
   ht.addEventListener('click',()=>{ ht.classList.toggle('open'); hb.classList.toggle('open'); });
+  // blendy maskujące
+  STATE.blenda = STATE.blenda || {left:0,right:0,top:0};
+  [['blendaLeft','left'],['blendaRight','right'],['blendaTop','top']].forEach(([id,key])=>{
+    const inp = document.getElementById(id);
+    if(!inp) return;
+    inp.value = STATE.blenda[key] || 0;
+    inp.addEventListener('input',()=>{
+      let v = Number(inp.value)||0;
+      if(v < 0) v = 0;
+      if(v > 200) v = 200;
+      if(v > 0 && v < 20) v = 20;   // minimum sensownej blendy
+      STATE.blenda[key] = v;
+      renderPreview(); updatePrice(); saveState();
+    });
+    inp.addEventListener('blur',()=>{ inp.value = STATE.blenda[key] || 0; });
+  });
   const ub = document.getElementById('unevenBox');
   if(STATE.uneven) ub.classList.add('on');
   ub.querySelector('.uneven-top').addEventListener('click',()=>{
@@ -460,10 +564,19 @@ function bindDimensions(){
 // ────────────────────────────────────────────────────────────
 //  STEP 3 — SECTIONS editor
 // ────────────────────────────────────────────────────────────
+// Wymiary korpusu = wnęka − blendy − luz montażowy (6 mm szer., 5 mm wys.)
+function cabinetW(){
+  const b = STATE.blenda||{};
+  return Math.max(200, STATE.dim.w - (b.left||0) - (b.right||0) - 6);
+}
+function cabinetH(){
+  const b = STATE.blenda||{};
+  return Math.max(200, STATE.dim.h - (b.top||0) - 5);
+}
 // Szerokość użyteczna wewnątrz korpusu (odświeża się wraz z liczbą sekcji)
 function usableInternalW(){
   const n = STATE.sections.length;
-  return Math.max(0, STATE.dim.w - 40 - 18 * (n + 1));
+  return Math.max(0, cabinetW() - 40 - 18 * (n + 1));
 }
 function balanceSectionWidths(){
   const W = usableInternalW();
@@ -549,7 +662,7 @@ function renderLegPicker(){
     row.innerHTML = '';
   }
 }
-function effectiveInteriorH(){ return STATE.dim.h - 40 - baseOffset(); }
+function effectiveInteriorH(){ return cabinetH() - 40 - baseOffset(); }
 // liczba zawiasów na front wg wysokości (mm)
 function hingeCount(hMm){
   if(hMm <= 900) return 2;
@@ -1521,12 +1634,20 @@ function renderFrontSections(){
 function renderPreview(){
   normalizeShelfHeights();
   const svg = document.getElementById('cabinetSvg');
-  const {w,h,d} = STATE.dim;
+  const d = STATE.dim.d;
+  const nicheW = STATE.dim.w, nicheH = STATE.dim.h;
+  const w = cabinetW(), h = cabinetH();
+  const bl = STATE.blenda || {left:0,right:0,top:0};
   const padX=60,padY=60;
   const maxW=600-padX*2, maxH=700-padY*2;
-  const scale = Math.min(maxW/w, maxH/h);
+  // skalujemy do całej wnęki (mebel + blendy), żeby wszystko się zmieściło
+  const scale = Math.min(maxW/nicheW, maxH/nicheH);
   const W=w*scale, H=h*scale;
-  const x0=(600-W)/2, y0=(700-H)/2;
+  const NW=nicheW*scale, NH=nicheH*scale;
+  const nx0=(600-NW)/2, ny0=(700-NH)/2;
+  // korpus wewnątrz wnęki: po blendzie lewej + 3 mm luzu, pod blendą górną + 5 mm
+  const x0 = nx0 + (bl.left||0)*scale + 3*scale;
+  const y0 = ny0 + (bl.top||0)*scale + 5*scale;
   const matC = MATERIALS.find(m=>m.id===STATE.material)||MATERIALS[0];
   const matF = STATE.splitFront ? (MATERIALS.find(m=>m.id===STATE.materialFront)||matC) : matC;
   const fill = matC.color || '#cdc6b4';
@@ -1707,6 +1828,30 @@ function renderPreview(){
     content += trackTop + doors + trackBot;
   }
 
+  // ── Blendy maskujące ──
+  {
+    const blFill = shade(fill,-0.08), blEdge = dark;
+    if(bl.left){
+      const bw = bl.left*scale;
+      content += `<rect x="${nx0}" y="${ny0}" width="${bw}" height="${NH}" fill="${blFill}" stroke="${blEdge}" stroke-width=".8"/>`;
+      content += `<text x="${nx0+bw/2}" y="${ny0+NH/2}" font-family="JetBrains Mono" font-size="7.5" fill="#6a6a62" text-anchor="middle" transform="rotate(-90 ${nx0+bw/2} ${ny0+NH/2})">${bl.left}</text>`;
+    }
+    if(bl.right){
+      const bw = bl.right*scale;
+      content += `<rect x="${nx0+NW-bw}" y="${ny0}" width="${bw}" height="${NH}" fill="${blFill}" stroke="${blEdge}" stroke-width=".8"/>`;
+      content += `<text x="${nx0+NW-bw/2}" y="${ny0+NH/2}" font-family="JetBrains Mono" font-size="7.5" fill="#6a6a62" text-anchor="middle" transform="rotate(-90 ${nx0+NW-bw/2} ${ny0+NH/2})">${bl.right}</text>`;
+    }
+    if(bl.top){
+      const bh = bl.top*scale;
+      content += `<rect x="${nx0}" y="${ny0}" width="${NW}" height="${bh}" fill="${blFill}" stroke="${blEdge}" stroke-width=".8"/>`;
+      content += `<text x="${nx0+NW/2}" y="${ny0+bh/2+3}" font-family="JetBrains Mono" font-size="7.5" fill="#6a6a62" text-anchor="middle">BLENDA ${bl.top} mm</text>`;
+    }
+    // obrys wnęki (kreskowany) gdy są blendy
+    if(bl.left||bl.right||bl.top){
+      content += `<rect x="${nx0}" y="${ny0}" width="${NW}" height="${NH}" fill="none" stroke="${dark}" stroke-width=".7" stroke-dasharray="5 4" opacity=".55"/>`;
+    }
+  }
+
   svg.innerHTML = `<defs>
     <linearGradient id="mirrorG" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0" stop-color="#e6ecef"/><stop offset=".5" stop-color="#c9d1d6"/><stop offset="1" stop-color="#aeb6bc"/>
@@ -1716,7 +1861,10 @@ function renderPreview(){
     </linearGradient>
   </defs>${content}`;
 
-  document.getElementById('pfDim').textContent = `${w} × ${h} × ${d}`;
+  const pfd = document.getElementById('pfDim');
+  if(pfd) pfd.textContent = (bl.left||bl.right||bl.top)
+    ? `${w} × ${h} × ${d} (korpus)`
+    : `${w} × ${h} × ${d}`;
   const n = STATE.sections.length;
   const pl = n===1?'sekcja':(n<5?'sekcje':'sekcji');
   document.getElementById('pfSections').textContent = `${n} ${pl}`;
@@ -1724,7 +1872,7 @@ function renderPreview(){
   document.getElementById('phType').textContent = STATE.typeName;
 }
 function drawFront(s,x,y,sw,sh,mat,dark,si){
-  const fill = mat.color;
+  const fill = mat.color || '#cdc6b4';
   let out = `<rect x="${x+2}" y="${y+2}" width="${sw-4}" height="${sh-4}" fill="${shade(mat.color,-0.02)}" stroke="${dark}" stroke-width=".6"/>`;
   // derive drawer count from items
   let drawerCount = 0, drawerH = 0, rodY=null, hasShelves=false, shelfYs=[];
@@ -2206,11 +2354,20 @@ function buildOrderSpec(refNo){
     },
     furniture: {
       type: STATE.typeName || STATE.type,
-      dimensions_mm: { w, h, d },
+      dimensions_mm: { w: cabinetW(), h: cabinetH(), d },
+      niche_mm: { w: STATE.dim.w, h: STATE.dim.h, d },
       uneven_walls: !!STATE.uneven,
       base: baseTxt,
       sections_count: STATE.sections.length,
       band: STATE.band ? `Przelotowa półka ${STATE.band.position==='top'?'górna':'dolna'} ${STATE.band.h} mm — sekcje ${STATE.band.from+1}–${STATE.band.to+1}` : '—',
+      blenda: (()=>{
+        const b = STATE.blenda||{};
+        const parts = [];
+        if(b.left)  parts.push(`lewa ${b.left} mm`);
+        if(b.right) parts.push(`prawa ${b.right} mm`);
+        if(b.top)   parts.push(`górna ${b.top} mm`);
+        return parts.length ? parts.join(', ') : '—';
+      })(),
       sections,
     },
     materials: {
@@ -2249,6 +2406,13 @@ function buildOrderSpec(refNo){
       vat_rate: pb.vat,
       board_m2: Number(pb.board_m2.toFixed(2)),
       waste_pct: Math.round(pb.waste*100),
+    },
+    production: {
+      pieces_count: pb.cut.pieceCount,
+      cuts_count: pb.cut.cutsCount,
+      cutting_mb: pb.cut.cutMb,
+      edging_mb: pb.cut.edgeMb,
+      piece_list: pb.cut.pieces,
     },
     consents: {
       rodo: !!STATE.lead.consent,
@@ -2294,11 +2458,13 @@ function buildSpecHTML(refNo){
 
   <tr><td colspan="2"><h3 style="margin:14px 0 6px;font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;border-bottom:1px solid #d9d3c4;padding-bottom:4px">Mebel</h3></td></tr>
   ${TR('Typ zabudowy', s.furniture.type)}
-  ${TR('Wymiary (szer × wys × głęb)', `${s.furniture.dimensions_mm.w} × ${s.furniture.dimensions_mm.h} × ${s.furniture.dimensions_mm.d} mm`)}
+  ${TR('Wymiary wnęki (szer × wys × głęb)', `${s.furniture.niche_mm.w} × ${s.furniture.niche_mm.h} × ${s.furniture.niche_mm.d} mm`)}
+  ${TR('Wymiary korpusu (szer × wys × głęb)', `<strong>${s.furniture.dimensions_mm.w} × ${s.furniture.dimensions_mm.h} × ${s.furniture.dimensions_mm.d} mm</strong>`)}
   ${s.furniture.uneven_walls ? TR('Ściany', '<strong style="color:#a8552f">krzywe — wymaga kontaktu</strong>') : ''}
   ${TR('Osadzenie', s.furniture.base)}
   ${TR('Liczba sekcji', s.furniture.sections_count)}
   ${s.furniture.band && s.furniture.band !== '—' ? TR('Przelotowa półka', s.furniture.band) : ''}
+  ${s.furniture.blenda && s.furniture.blenda !== '—' ? TR('Blendy maskujące', s.furniture.blenda) : ''}
   ${TR('Dekor korpusu', corpusName)}
   ${TR('Dekor frontów', frontsName)}
   ${frBlock}
@@ -2312,6 +2478,29 @@ function buildSpecHTML(refNo){
   ${TR('Projekt', fmtZL(p.design))}
   ${TR('Akcesoria', fmtZL(p.sections_inserts + p.hardware))}
   ${TR('Zużycie płyty', p.board_m2.toFixed(2).replace('.',',') + ' m²')}
+
+  <tr><td colspan="2"><h3 style="margin:14px 0 6px;font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;border-bottom:1px solid #d9d3c4;padding-bottom:4px">Produkcja</h3></td></tr>
+  ${TR('Liczba formatek', s.production.pieces_count + ' szt.')}
+  ${TR('Liczba cięć (szac.)', s.production.cuts_count + ' szt.')}
+  ${TR('Cięcie łącznie', String(s.production.cutting_mb).replace('.',',') + ' mb')}
+  ${TR('Obrzeże łącznie', String(s.production.edging_mb).replace('.',',') + ' mb')}
+  <tr><td colspan="2" style="padding:8px 0">
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="padding:6px 10px;background:#ede7d6;border:1px solid #d9d3c4;text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase">Element</th>
+        <th style="padding:6px 10px;background:#ede7d6;border:1px solid #d9d3c4;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase">Wymiar (mm)</th>
+        <th style="padding:6px 10px;background:#ede7d6;border:1px solid #d9d3c4;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase">Szt.</th>
+      </tr></thead>
+      <tbody>
+        ${s.production.piece_list.map(pc=>`<tr>
+          <td style="padding:5px 10px;border:1px solid #d9d3c4">${pc.name}</td>
+          <td style="padding:5px 10px;border:1px solid #d9d3c4;text-align:right;font-family:'JetBrains Mono',monospace">${pc.w} × ${pc.h}</td>
+          <td style="padding:5px 10px;border:1px solid #d9d3c4;text-align:right;font-family:'JetBrains Mono',monospace">${pc.qty}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </td></tr>
+
   <tr><td style="padding:10px 12px;background:#1a1a17;color:#f5f1e8;font-weight:500">CENA NETTO</td><td style="padding:10px 12px;background:#1a1a17;color:#f5f1e8;font-family:'JetBrains Mono',monospace">${fmtZL(p.total_net)}</td></tr>
   <tr><td style="padding:10px 12px;background:#1a1a17;color:#b8915a;font-weight:500">CENA BRUTTO (VAT ${Math.round(p.vat_rate*100)}%)</td><td style="padding:10px 12px;background:#1a1a17;color:#b8915a;font-family:'JetBrains Mono',monospace;font-size:16px">${fmtZL(p.total_gross)}</td></tr>
 
@@ -2520,9 +2709,11 @@ function renderSummary(){
       <div class="ss-block">
         <div class="ss-block-h">Mebel</div>
         <div class="ss-kv"><span class="ss-k">Typ</span><span class="ss-v">${STATE.typeName}</span></div>
-        <div class="ss-kv"><span class="ss-k">Wymiary</span><span class="ss-v mono">${w} × ${h} × ${d} mm</span></div>
+        <div class="ss-kv"><span class="ss-k">Wnęka</span><span class="ss-v mono">${STATE.dim.w} × ${STATE.dim.h} × ${d} mm</span></div>
+        <div class="ss-kv"><span class="ss-k">Korpus mebla</span><span class="ss-v mono">${cabinetW()} × ${cabinetH()} × ${d} mm</span></div>
         <div class="ss-kv"><span class="ss-k">Osadzenie</span><span class="ss-v">${baseTxt}</span></div>
         ${STATE.band ? `<div class="ss-kv"><span class="ss-k">Przelotowa półka</span><span class="ss-v">${STATE.band.position==='top'?'Górna':'Dolna'} ${STATE.band.h} mm · sekcje ${STATE.band.from+1}–${STATE.band.to+1}</span></div>` : ''}
+        ${(()=>{const b=STATE.blenda||{};const p=[];if(b.left)p.push(`lewa ${b.left}`);if(b.right)p.push(`prawa ${b.right}`);if(b.top)p.push(`górna ${b.top}`);return p.length?`<div class="ss-kv"><span class="ss-k">Blendy</span><span class="ss-v">${p.join(' · ')} mm</span></div>`:'';})()}
         ${STATE.uneven ? `<div class="ss-kv"><span class="ss-k">Ściany</span><span class="ss-v" style="color:var(--clay)">krzywe — kontakt techniczny</span></div>` : ''}
       </div>
 

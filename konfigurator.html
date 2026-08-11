@@ -122,6 +122,13 @@
 
   /* ── STEP 2 — dimensions ── */
   .dim-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem;margin-bottom:1rem}
+  .blenda-block{margin:1.25rem 0;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:2px;background:var(--card)}
+  .blenda-title{font-family:var(--ff-serif);font-size:1.05rem}
+  .blenda-sub{font-size:.78rem;color:var(--ink-mute);margin-top:.2rem;line-height:1.45;max-width:56ch}
+  .blenda-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem;margin-top:.85rem}
+  .blenda-cell{display:flex;flex-direction:column;gap:.3rem}
+  .blenda-cell label{font-family:var(--ff-mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute)}
+  @media(max-width:560px){.blenda-row{grid-template-columns:1fr}}
   .dim-cell{display:flex;flex-direction:column;gap:.3rem}
   .dim-cell label{font-family:var(--ff-mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute)}
   .dim-input{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:2px;padding:0 .75rem;transition:border-color .15s}
@@ -632,6 +639,30 @@
           </div>
         </div>
 
+        <!-- BLENDY MASKUJĄCE -->
+        <div class="blenda-block">
+          <div class="blenda-head">
+            <div>
+              <div class="blenda-title">Blendy maskujące</div>
+              <div class="blenda-sub">Listwy zasłaniające szczelinę między meblem a ścianą lub sufitem. Szerokość 20–200 mm. Zostaw 0, jeśli nie potrzebujesz.<br/><strong>Korpus mebla</strong> = wnęka − blendy − luz montażowy (6 mm w poziomie, 5 mm w pionie).</div>
+            </div>
+          </div>
+          <div class="blenda-row">
+            <div class="blenda-cell">
+              <label>Lewa strona</label>
+              <div class="dim-input"><input type="number" id="blendaLeft" min="0" max="200" step="5" value="0"/><span class="unit">mm</span></div>
+            </div>
+            <div class="blenda-cell">
+              <label>Prawa strona</label>
+              <div class="dim-input"><input type="number" id="blendaRight" min="0" max="200" step="5" value="0"/><span class="unit">mm</span></div>
+            </div>
+            <div class="blenda-cell">
+              <label>Góra</label>
+              <div class="dim-input"><input type="number" id="blendaTop" min="0" max="200" step="5" value="0"/><span class="unit">mm</span></div>
+            </div>
+          </div>
+        </div>
+
         <button class="help-toggle" id="helpToggle" type="button">
           <span class="ic">?</span>
           <span>Jak prawidłowo zmierzyć wnękę?</span>
@@ -945,7 +976,7 @@
 })();
 </script>
 
-<script src="konfigurator-data.js?v=171"></script>
-<script src="konfigurator-app.js?v=171"></script>
+<script src="konfigurator-data.js?v=174"></script>
+<script src="konfigurator-app.js?v=174"></script>
 </body>
 </html>
