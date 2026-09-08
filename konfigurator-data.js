@@ -50,6 +50,10 @@ const ITEM_TYPES = {
     {id:'spodnie-elite', name:'Wieszak na spodnie',    price:149, desc:'Wysuwny, ramiona z aksamitem',brand:'GTV Elite',frameColors:['antracyt','chrom'],          image:'assets/akcesoria/spodnie-elite.png', widthBands:[[560,618],[660,718],[760,818],[860,918]], minD:483, fixedH:60},
     {id:'simpla-rejs',   name:'Szuflada druciana',     price:99, desc:'Simpla — druciana z domykiem',brand:'REJS',    frameColors:['chrom','antracyt','bialy'],  image:'assets/akcesoria/simpla-rejs.png',   widthBands:[[332,348],[432,448],[532,548]], minD:485, fixedH:200},
   ]},
+  'siedzisko':{name:'Siedzisko', price:89, icon:'seat', defaultH:450, onlyTypes:['szafa','garderoba'],
+    note:'Wysokość standardowa 450 mm. Nad siedziskiem wymagane min. 1200 mm wolnej przestrzeni. Wersja tapicerowana — wyceniana indywidualnie.'},
+  'pralka': {name:'Miejsce na pralkę', price:0, icon:'washer', defaultH:880, onlyTypes:['lazienka'], atFloor:true, minSecW:620,
+    note:'Wnęka na pralkę — zawsze przy podłodze. Standardowa pralka: 600×850 mm, zalecana sekcja min. 620 mm i wnęka 880 mm wysokości.'},
   'otwarta': {name:'Przestrzeń otwarta',   price:0,   icon:'open',       defaultH:300},
 };
 
@@ -321,17 +325,17 @@ const HANDLES = [
 const PRICING = {
   // Material handled per-decor (cena Kronospan zł/m² na pozycji)
   laborPerSqm:     50,        // zł / m² zużytej płyty (z odpadem)
-  cuttingPerMb:     3,        // zł / mb cięcia
-  edgingPerMb:      7,        // zł / mb obrzeża
+  cuttingPerMb:   2.5,        // zł / mb cięcia
+  edgingPerMb:      5,        // zł / mb obrzeża + oklejania
   cuttingPerSqm:    5,        // ~mb cięcia na m² płyty (heurystyka)
   edgingPerSqm:     4,        // ~mb obrzeża na m² płyty (heurystyka)
-  designFee:      500,        // zł / projekt (ryczałt)
+  designFee:        0,        // zł / projekt (ryczałt) — wyłączony
   backPanel:      100,        // zł / mebel — plecy (HDF/płyta)
   vat:           0.23,        // 23%
   // Odpad płyty wg liczby arkuszy (sheet 2800×2070 ≈ 5.796 m²)
   sheetSqm:     5.796,
   wasteRules: [
-    {maxSheets: Infinity, rate: 0.15},
+    {maxSheets: Infinity, rate: 0},
   ],
   lightingPerM: 100,
   minOrder:     250,

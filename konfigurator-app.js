@@ -44,6 +44,8 @@ function defaultState(){
     matTone:'all',
     band:null,             // {position:'top'|'bottom', h:300, from:0, to:1} — przelotowa półka
     blenda:{left:0, right:0, top:0},  // blendy maskujące (mm, 0 = brak, zakres 20–200)
+    slope:{on:false, side:'right', hLow:1800, flat:0},  // skośny sufit: hLow = wys. przy niższej krawędzi, flat = długość prostego sufitu (0 = brak, skos od razu)
+    notch:{on:false, side:'left', from:'bottom', w:300, h:1000, d:150},  // uskok: komin/rura — w/h/d przeszkody
     lead:{name:'',email:'',phone:'',city:'',notes:'',consent:false},
   };
 }
@@ -106,6 +108,11 @@ function loadState(){
         if(!parsed.slidingSplits) parsed.slidingSplits={count:2, fills:['lustro','plyta']};
         if(typeof parsed.band === 'undefined') parsed.band = null;
         if(!parsed.blenda) parsed.blenda = {left:0, right:0, top:0};
+        if(!parsed.slope) parsed.slope = {on:false, side:'right', hLow:1800, flat:0};
+        if(typeof parsed.slope.flat === 'undefined') parsed.slope.flat = parsed.slope.span ? Math.max(0, (parsed.dim?parsed.dim.w:2000) - parsed.slope.span) : 0;
+        delete parsed.slope.span;
+        if(!parsed.notch) parsed.notch = {on:false, side:'left', from:'bottom', w:300, h:1000, d:150};
+        if(typeof parsed.notch.d === 'undefined') parsed.notch.d = 150;
         if(!parsed.leg) parsed.leg='gtv-dak27';
         if(!parsed.legColor) parsed.legColor='czarna';
         // handle migrations — old set → new set
@@ -153,6 +160,8 @@ const ITEM_ICONS = {
   pantograph:`<svg viewBox="0 0 20 20" fill="none"><line x1="2" y1="5" x2="18" y2="5" stroke="currentColor" stroke-width="1.5"/><path d="M5 5 L3 12 M15 5 L17 12 M5 5 L17 12 M15 5 L3 12" stroke="currentColor" stroke-width=".8"/><line x1="3" y1="12" x2="17" y2="12" stroke="currentColor" stroke-width="1.5"/></svg>`,
   basket:`<svg viewBox="0 0 20 20" fill="none"><path d="M3 7 L17 7 L15 17 L5 17 Z" stroke="currentColor" stroke-width="1" fill="none"/><line x1="3" y1="10" x2="17" y2="10" stroke="currentColor" stroke-width=".7"/><line x1="3" y1="13" x2="17" y2="13" stroke="currentColor" stroke-width=".7"/><line x1="7" y1="7" x2="6" y2="17" stroke="currentColor" stroke-width=".7"/><line x1="13" y1="7" x2="14" y2="17" stroke="currentColor" stroke-width=".7"/></svg>`,
   open:`<svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1" fill="none" stroke-dasharray="2 2"/></svg>`,
+  seat:`<svg viewBox="0 0 20 20" fill="none"><rect x="2" y="8" width="16" height="4" rx="1.5" fill="currentColor"/><line x1="4" y1="12" x2="4" y2="17" stroke="currentColor" stroke-width="1.4"/><line x1="16" y1="12" x2="16" y2="17" stroke="currentColor" stroke-width="1.4"/></svg>`,
+  washer:`<svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="1" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="11" r="4" stroke="currentColor" stroke-width="1.1"/><circle cx="6" cy="5.5" r="1" fill="currentColor"/><circle cx="14" cy="5.5" r="1" fill="currentColor"/></svg>`,
 };
 
 // ────────────────────────────────────────────────────────────
@@ -183,20 +192,43 @@ function buildCutList(){
   };
 
   // korpus
-  add('Bok korpusu', d, h, 2, 1);                 // obrzeże na krawędzi przedniej (h)
-  add('Wieniec górny', w - 2*T, d, 1, 1);         // obrzeże przód (w)
+  const sl = STATE.slope;
+  if(sl && sl.on){
+    // boki: jeden pełnej wysokości, drugi obniżony
+    const hLo = Math.max(300, Math.min(sl.hLow, h));
+    add('Bok korpusu (wysoki)', d, h, 1, 1);
+    add('Bok korpusu (niski, skos)', d, hLo, 1, 1);
+    add('Wieniec górny (skos, cięty pod kątem)', w - 2*T, d, 1, 1);
+  } else {
+    add('Bok korpusu', d, h, 2, 1);
+    add('Wieniec górny', w - 2*T, d, 1, 1);
+  }
   add('Wieniec dolny', w - 2*T, d, 1, 1);
-  // przegrody pionowe między sekcjami
+  // przegrody pionowe między sekcjami — przy skosie każda innej wysokości
   const nDiv = Math.max(0, STATE.sections.length - 1);
-  add('Przegroda pionowa', d, innerH, nDiv, 1);
+  if(sl && sl.on){
+    for(let i=0;i<nDiv;i++){
+      let x = T;
+      for(let k=0;k<=i;k++) x += STATE.sections[k].w + T;
+      add(`Przegroda pionowa ${i+1} (skos)`, d, Math.round(cabinetHAt(x) - 2*T), 1, 1);
+    }
+  } else {
+    add('Przegroda pionowa', d, innerH, nDiv, 1);
+  }
 
   // półki w sekcjach
-  STATE.sections.forEach(s=>{
+  STATE.sections.forEach((s,si)=>{
+    // uskok redukuje głębokość formatek w tej sekcji
+    const dSec = notchAffects(si) ? Math.max(100, d - (STATE.notch.d||150)) : d;
+    const notchTag = notchAffects(si) ? ` — głęb. ${dSec} mm (uskok)` : '';
     const shelves = s.items.filter(it=>it.type==='polka');
-    if(shelves.length) add(`Półka (sekcja ${s.w} mm)`, s.w, d, shelves.length, 1);
+    if(shelves.length) add(`Półka (sekcja ${s.w} mm)${notchTag}`, s.w, dSec, shelves.length, 1);
     // półki z przegrodą — dodatkowa pionowa przegródka
     const withDiv = shelves.filter(it=>it.variant==='przegroda').length;
-    if(withDiv) add('Przegroda w półce', d, 250, withDiv, 1);
+    if(withDiv) add('Przegroda w półce', dSec, 250, withDiv, 1);
+    // siedzisko — wzmocniona deska
+    const seats = s.items.filter(it=>it.type==='siedzisko');
+    if(seats.length) add(`Siedzisko płytowe (sekcja ${s.w} mm)`, s.w, dSec, seats.length, 1);
   });
 
   // przelotowa półka
@@ -213,7 +245,7 @@ function buildCutList(){
   } else {
     STATE.sections.forEach((s,si)=>{
       if(!STATE.sectionFronts[si]) return;
-      const fh = (h - 2*T) - (bandSpans(si) ? STATE.band.h : 0);
+      const fh = (sectionCabinetH(si) - 2*T) - (bandSpans(si) ? STATE.band.h : 0) - (s.lift||0);
       add(`Front uchylny (sekcja ${s.w} mm)`, s.w - 4, fh, 1, 4);
     });
   }
@@ -262,8 +294,10 @@ function priceBreakdown(){
   const d = STATE.dim.d;
   const w = cabinetW(), h = cabinetH();
 
-  // 1. Powierzchnie płyty
-  const carcass_m2 = (2*h*d + 2*w*d + w*h)/1e6;
+  // 1. Powierzchnie płyty (przy skosie boki i plecy mniejsze)
+  const sl = STATE.slope;
+  const hAvg = (sl && sl.on) ? (h + Math.max(300, Math.min(sl.hLow, h)))/2 : h;
+  const carcass_m2 = ((h + (sl&&sl.on ? Math.max(300,Math.min(sl.hLow,h)) : h))*d + 2*w*d + w*hAvg)/1e6;
   let shelf_m2 = 0;
   let accCost = 0;
   STATE.sections.forEach(s=>{
@@ -283,7 +317,11 @@ function priceBreakdown(){
       accCost += p;
     });
   });
-  const fronts_m2_full = (w*h)/1e6;
+  const fronts_m2_full = (w*hAvg)/1e6;
+  // uskok — odejmij powierzchnię przeszkody od płyty i frontów
+  const notchArea_m2 = (STATE.notch && STATE.notch.on)
+    ? (STATE.notch.w/1000) * (STATE.notch.h/1000) * Math.min(1, (STATE.notch.d||150) / d)
+    : 0;
   // przelotowa półka — dodatkowa deska (szer. obejmowanych sekcji × głęb.)
   if(STATE.band){
     let bandW = 0;
@@ -304,8 +342,8 @@ function priceBreakdown(){
   // blendy maskujące — boki (szer × wys mebla) + góra (szer mebla × szer blendy)
   const bl = STATE.blenda || {left:0,right:0,top:0};
   const blenda_m2 = ((bl.left||0)*STATE.dim.h + (bl.right||0)*STATE.dim.h + (bl.top||0)*STATE.dim.w)/1e6;
-  const corpus_m2 = carcass_m2 + shelf_m2 + blenda_m2;
-  const board_m2 = corpus_m2 + fronts_m2;
+  const corpus_m2 = Math.max(0.1, carcass_m2 + shelf_m2 + blenda_m2 - notchArea_m2);
+  const board_m2 = corpus_m2 + Math.max(0, fronts_m2 - notchArea_m2);
 
   // 2. Materiał — cena Kronospana × (1 + odpad)
   const matC = MATERIALS.find(m=>m.id===STATE.material) || MATERIALS[0];
@@ -548,10 +586,127 @@ function bindDimensions(){
       if(v > 200) v = 200;
       if(v > 0 && v < 20) v = 20;   // minimum sensownej blendy
       STATE.blenda[key] = v;
-      renderPreview(); updatePrice(); saveState();
+      balanceSectionWidths();
+      renderSections(); renderPreview(); updatePrice(); saveState();
     });
     inp.addEventListener('blur',()=>{ inp.value = STATE.blenda[key] || 0; });
   });
+
+  // skośny sufit
+  STATE.slope = STATE.slope || {on:false, side:'right', hLow:1800};
+  const slopeCfg = document.getElementById('slopeCfg');
+  const slopeOnB = document.getElementById('slopeOn');
+  const slopeOffB = document.getElementById('slopeOff');
+  const slopeHLow = document.getElementById('slopeHLow');
+  const slopeHHigh = document.getElementById('slopeHHigh');
+  function syncSlopeUI(){
+    const s = STATE.slope;
+    if(slopeOnB) slopeOnB.classList.toggle('on', s.on);
+    if(slopeOffB) slopeOffB.classList.toggle('on', !s.on);
+    if(slopeCfg) slopeCfg.hidden = !s.on;
+    document.querySelectorAll('[data-slopeside]').forEach(b=>{
+      b.classList.toggle('on', b.dataset.slopeside === s.side);
+    });
+    if(slopeHLow){ slopeHLow.value = s.hLow; slopeHLow.max = cabinetH(); }
+    if(slopeHHigh) slopeHHigh.value = cabinetH();
+    const spanEl = document.getElementById('slopeFlat');
+    if(spanEl){ spanEl.value = s.flat || 0; spanEl.max = cabinetW(); }
+  }
+  window.__syncSlopeUI = syncSlopeUI;
+  if(slopeOnB) slopeOnB.addEventListener('click',()=>{
+    STATE.slope.on = true;
+    if(STATE.slope.hLow >= cabinetH()) STATE.slope.hLow = Math.max(300, cabinetH() - 600);
+    syncSlopeUI(); renderSections(); renderPreview(); updatePrice(); saveState();
+  });
+  if(slopeOffB) slopeOffB.addEventListener('click',()=>{
+    STATE.slope.on = false;
+    syncSlopeUI(); renderSections(); renderPreview(); updatePrice(); saveState();
+  });
+  document.querySelectorAll('[data-slopeside]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      STATE.slope.side = b.dataset.slopeside;
+      syncSlopeUI(); renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+  });
+  if(slopeHLow){
+    slopeHLow.addEventListener('input',()=>{
+      let v = Number(slopeHLow.value)||0;
+      const maxH = cabinetH();
+      if(v < 300) v = 300;
+      if(v > maxH) v = maxH;
+      STATE.slope.hLow = v;
+      if(slopeHHigh) slopeHHigh.value = maxH;
+      renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+    slopeHLow.addEventListener('blur',()=>{ slopeHLow.value = STATE.slope.hLow; });
+  }
+  const slopeFlat = document.getElementById('slopeFlat');
+  if(slopeFlat){
+    slopeFlat.addEventListener('input',()=>{
+      let v = Number(slopeFlat.value)||0;
+      if(v < 0) v = 0;
+      if(v > cabinetW()) v = cabinetW();
+      STATE.slope.flat = v;
+      renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+    slopeFlat.addEventListener('blur',()=>{ slopeFlat.value = STATE.slope.flat || 0; });
+  }
+  syncSlopeUI();
+
+  // uskok (komin / rura)
+  STATE.notch = STATE.notch || {on:false, side:'left', from:'bottom', w:300, h:1000};
+  const notchCfg = document.getElementById('notchCfg');
+  const notchOnB = document.getElementById('notchOn');
+  const notchOffB = document.getElementById('notchOff');
+  const notchW = document.getElementById('notchW');
+  const notchH = document.getElementById('notchH');
+  function syncNotchUI(){
+    const n = STATE.notch;
+    if(notchOnB) notchOnB.classList.toggle('on', n.on);
+    if(notchOffB) notchOffB.classList.toggle('on', !n.on);
+    if(notchCfg) notchCfg.hidden = !n.on;
+    document.querySelectorAll('[data-notchside]').forEach(b=>b.classList.toggle('on', b.dataset.notchside===n.side));
+    document.querySelectorAll('[data-notchfrom]').forEach(b=>b.classList.toggle('on', b.dataset.notchfrom===n.from));
+    if(notchW) notchW.value = n.w;
+    if(notchH) notchH.value = n.h;
+    const dEl = document.getElementById('notchD');
+    if(dEl){ dEl.value = n.d || 150; dEl.max = STATE.dim.d; }
+  }
+  window.__syncNotchUI = syncNotchUI;
+  if(notchOnB) notchOnB.addEventListener('click',()=>{
+    STATE.notch.on = true; syncNotchUI(); renderSections(); renderPreview(); updatePrice(); saveState();
+  });
+  if(notchOffB) notchOffB.addEventListener('click',()=>{
+    STATE.notch.on = false; syncNotchUI(); renderSections(); renderPreview(); updatePrice(); saveState();
+  });
+  document.querySelectorAll('[data-notchside]').forEach(b=>{
+    b.addEventListener('click',()=>{ STATE.notch.side = b.dataset.notchside; syncNotchUI(); renderSections(); renderPreview(); updatePrice(); saveState(); });
+  });
+  document.querySelectorAll('[data-notchfrom]').forEach(b=>{
+    b.addEventListener('click',()=>{ STATE.notch.from = b.dataset.notchfrom; syncNotchUI(); renderSections(); renderPreview(); updatePrice(); saveState(); });
+  });
+  if(notchW) notchW.addEventListener('input',()=>{
+    let v = Number(notchW.value)||0;
+    v = Math.max(50, Math.min(v, Math.max(50, cabinetW() - 200)));
+    STATE.notch.w = v; renderSections(); renderPreview(); updatePrice(); saveState();
+  });
+  if(notchW) notchW.addEventListener('blur',()=>{ notchW.value = STATE.notch.w; });
+  if(notchH) notchH.addEventListener('input',()=>{
+    let v = Number(notchH.value)||0;
+    v = Math.max(50, Math.min(v, Math.max(50, cabinetH() - 300)));
+    STATE.notch.h = v; renderSections(); renderPreview(); updatePrice(); saveState();
+  });
+  if(notchH) notchH.addEventListener('blur',()=>{ notchH.value = STATE.notch.h; });
+  const notchD = document.getElementById('notchD');
+  if(notchD){
+    notchD.addEventListener('input',()=>{
+      let v = Number(notchD.value)||0;
+      v = Math.max(20, Math.min(v, STATE.dim.d));
+      STATE.notch.d = v; renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+    notchD.addEventListener('blur',()=>{ notchD.value = STATE.notch.d; });
+  }
+  syncNotchUI();
   const ub = document.getElementById('unevenBox');
   if(STATE.uneven) ub.classList.add('on');
   ub.querySelector('.uneven-top').addEventListener('click',()=>{
@@ -576,7 +731,8 @@ function cabinetH(){
 // Szerokość użyteczna wewnątrz korpusu (odświeża się wraz z liczbą sekcji)
 function usableInternalW(){
   const n = STATE.sections.length;
-  return Math.max(0, cabinetW() - 40 - 18 * (n + 1));
+  // 18 mm × (n+1) = 2 boki + (n-1) przegród wewnętrznych
+  return Math.max(0, cabinetW() - 18 * (n + 1));
 }
 function balanceSectionWidths(){
   const W = usableInternalW();
@@ -663,6 +819,91 @@ function renderLegPicker(){
   }
 }
 function effectiveInteriorH(){ return cabinetH() - 40 - baseOffset(); }
+// ── Skośny sufit ────────────────────────────────────────────
+// Wysokość korpusu w punkcie x (mm od lewej krawędzi korpusu).
+// Skos jest zakotwiczony we WNĘCE (ścianach), nie w korpusie — blenda nie przesuwa
+// miejsca zaczepienia skosu, tylko zabiera miejsce z odcinka prostego sufitu.
+function cabinetHAt(x){
+  const s = STATE.slope;
+  if(!s || !s.on) return cabinetH();
+  const bl = STATE.blenda || {left:0, right:0, top:0};
+  const Wn = STATE.dim.w;                    // szerokość wnęki
+  const hiN = STATE.dim.h - (bl.top || 0);   // sufit wnęki (po odjęciu górnej blendy)
+  const loN = Math.max(300, Math.min(s.hLow || hiN, hiN));
+  const flat = Math.max(0, Math.min(s.flat || 0, Wn));
+  const span = Math.max(1, Wn - flat);
+  // x korpusu → x wnęki (lewa blenda + luz montażowy 3 mm)
+  const xn = x + (bl.left || 0) + 3;
+  let hN;
+  if(s.side === 'right'){
+    if(xn <= flat) hN = hiN;
+    else {
+      const t = Math.max(0, Math.min(1, (xn - flat) / span));
+      hN = hiN - (hiN - loN) * t;
+    }
+  } else {
+    if(xn >= span) hN = hiN;
+    else {
+      const t = Math.max(0, Math.min(1, xn / span));
+      hN = loN + (hiN - loN) * t;
+    }
+  }
+  // wysokość korpusu = wysokość wnęki w tym punkcie − luz montażowy w pionie
+  return Math.max(300, Math.min(cabinetH(), hN - 5));
+}
+// Wysokość korpusu użyteczna dla danej sekcji (najniższy punkt sekcji)
+function sectionCabinetH(si){
+  const s = STATE.slope;
+  if(!s || !s.on) return cabinetH();
+  // x-zakres sekcji w mm (od lewej krawędzi korpusu, z uwzględnieniem płyt 18 mm)
+  let x = 18;
+  for(let i=0;i<si;i++) x += STATE.sections[i].w + 18;
+  const xEnd = x + (STATE.sections[si] ? STATE.sections[si].w : 0);
+  // najniższy punkt: prawa krawędź gdy sufit opada w prawo, lewa gdy w lewo
+  return s.side === 'right' ? cabinetHAt(xEnd) : cabinetHAt(x);
+}
+function sectionEffectiveH(si){ return sectionCabinetH(si) - 40 - baseOffset(); }
+// pozycje "przy podłodze" (pralka) zawsze na końcu listy = najniżej
+// ostrzeżenie: pod siedziskiem musi być półka lub szuflady; nad nim min. 1200 mm
+function seatWarn(s){
+  const idx = s.items.findIndex(it=>it.type==='siedzisko');
+  if(idx < 0) return '';
+  const warns = [];
+  // 1200 mm nad siedziskiem — licz kolejne pozycje w górę do najbliższej półki/płyty
+  let above = 0;
+  for(let i=idx-1;i>=0;i--){
+    above += Number(s.items[i].h)||0;
+    if(s.items[i].type==='polka' || s.items[i].type==='siedzisko') break;
+  }
+  if(above < 1200) warns.push(`Nad siedziskiem <strong>${above} mm</strong> — wymagane min. <strong>1200 mm</strong>.`);
+  // pod siedziskiem wymagana półka lub szuflady
+  const below = s.items.slice(idx+1);
+  const hasStorage = below.some(x=>x.type==='polka'||x.type==='szuflada'||x.type==='szuflady'||x.type==='kosz');
+  if(!hasStorage) warns.push('Pod siedziskiem dodaj <strong>półkę lub szuflady</strong> — pusta przestrzeń wymaga podparcia.');
+  if(!warns.length) return '';
+  return `<div class="seat-warn">⚠ ${warns.join(' ')}</div>`;
+}
+function sortFloorItems(sec){
+  const floor = sec.items.filter(x=>ITEM_TYPES[x.type] && ITEM_TYPES[x.type].atFloor);
+  if(!floor.length) return;
+  sec.items = sec.items.filter(x=>!(ITEM_TYPES[x.type] && ITEM_TYPES[x.type].atFloor)).concat(floor);
+}
+// ── Uskok (komin / rura) ────────────────────────────────────
+// x-zakres sekcji w mm od lewej krawędzi korpusu
+function sectionXRange(si){
+  let x = 18;
+  for(let i=0;i<si;i++) x += STATE.sections[i].w + 18;
+  return [x, x + (STATE.sections[si] ? STATE.sections[si].w : 0)];
+}
+function notchAffects(si){
+  const n = STATE.notch;
+  if(!n || !n.on) return false;
+  const W = cabinetW();
+  const [xa, xb] = sectionXRange(si);
+  const nx0 = n.side === 'left' ? 0 : Math.max(0, W - n.w);
+  const nx1 = n.side === 'left' ? Math.min(W, n.w) : W;
+  return xa < nx1 && xb > nx0;
+}
 // liczba zawiasów na front wg wysokości (mm)
 function hingeCount(hMm){
   if(hMm <= 900) return 2;
@@ -677,8 +918,11 @@ function bandSpans(si){
   return b && si >= b.from && si <= b.to;
 }
 function sectionInteriorH(si){
-  // wysokość użyteczna danej sekcji (zmniejszona o pas jeśli go obejmuje)
-  return effectiveInteriorH() - (bandSpans(si) ? STATE.band.h : 0);
+  // wysokość użyteczna danej sekcji (skos + pas przelotowy + podniesienie nad podłogą)
+  // uskok NIE odejmuje wysokości — zmniejsza głębokość formatek w tym obszarze
+  return sectionEffectiveH(si)
+    - (bandSpans(si) ? STATE.band.h : 0)
+    - (STATE.sections[si] && STATE.sections[si].lift ? STATE.sections[si].lift : 0);
 }
 function clampBand(){
   const b = STATE.band;
@@ -696,6 +940,21 @@ function clampBand(){
 }
 function normalizeShelfHeights(){
   if(STATE.band) clampBand();
+  // auto-korekta: sekcje nie mogą wystawać poza użyteczną szerokość korpusu
+  const usable = usableInternalW();
+  const sumW = STATE.sections.reduce((a,s)=>a+s.w,0);
+  if(usable > 0 && Math.abs(sumW - usable) > 20){
+    balanceSectionWidths();
+  }
+  STATE.sections.forEach(sec=>{
+    // pralka zawsze na dole; sekcja z pralką nie może być podniesiona
+    if(sec.items.some(x=>ITEM_TYPES[x.type] && ITEM_TYPES[x.type].atFloor)){
+      sortFloorItems(sec);
+      sec.lift = 0;
+    }
+    // siedzisko — sama płyta 18 mm
+    sec.items.forEach(it=>{ if(it.type==='siedzisko') it.h = 18; });
+  });
   STATE.sections.forEach((s,si)=>{
     const polki = s.items.filter(it=>it.type==='polka');
     if(!polki.length) return;
@@ -739,12 +998,18 @@ function renderSections(){
       <div class="items-list" data-si="${si}">
         ${s.items.map((it,ii)=>renderItemRow(si,ii,it)).join('')}
       </div>
+      <div class="sec-lift">
+        <label>Nad podłogą</label>
+        <div class="sec-lift-input"><input type="number" class="lift-input" data-si="${si}" value="${s.lift||0}" min="0" step="10" ${s.items.some(x=>ITEM_TYPES[x.type]&&ITEM_TYPES[x.type].atFloor)?'disabled title="Sekcja z pralką musi stać na podłodze"':''}/><span class="unit">mm</span></div>
+        <span class="sec-lift-note">${s.items.some(x=>ITEM_TYPES[x.type]&&ITEM_TYPES[x.type].atFloor)?'sekcja z pralką — zawsze na podłodze':'0 = sekcja stoi na podłodze; wyżej = wolna przestrzeń pod sekcją'}</span>
+      </div>
       <div class="sec-foot">
         <div class="sec-sum">Suma wysokości: <span class="${status}">${physSum} / ${target} mm</span> <span class="sec-sum-note">(w tym półki × 18 mm płyty)</span>${sectionShelfCount(s)>1?` <button class="shelf-balance" data-si="${si}" title="Wyrównaj wysokości półek">⇕ Wyrównaj półki</button>`:''}</div>
+        ${seatWarn(s)}
         <div class="add-item-menu">
           <button class="add-item-btn" data-si="${si}">+ Dodaj element</button>
           <div class="add-item-pop" data-si="${si}">
-            ${Object.entries(ITEM_TYPES).map(([k,v])=>`
+            ${Object.entries(ITEM_TYPES).filter(([k,v])=>!v.onlyTypes || v.onlyTypes.includes(STATE.type)).map(([k,v])=>`
               <div class="aip-item" data-type="${k}" data-si="${si}">
                 ${ITEM_ICONS[v.icon]}
                 <span>${v.name}${v.brand?` · ${v.brand}`:''}</span>
@@ -859,6 +1124,9 @@ function renderItemRow(si,ii,it){
   const t = ITEM_TYPES[it.type] || ITEM_TYPES.polka;
   const h = it.h || t.defaultH || 300;
   const isAuto = it.type==='polka' && !it.manual;
+  const isSeat = it.type==='siedzisko';
+  const isFloor = !!t.atFloor;
+  const seatH = isSeat ? 18 : h;
   let variantHtml = '';
   if(t.variants){
     const v = t.variants.find(x=>x.id===it.variant) || t.variants[0];
@@ -871,12 +1139,13 @@ function renderItemRow(si,ii,it){
       <span class="item-name">${t.name}${t.brand?` <span style="color:var(--ink-mute);font-family:var(--ff-mono);font-size:.7rem">· ${t.brand}</span>`:''}${it.type==='szuflada' && it.internal?` <span class="item-int-badge">wewn.</span>`:''}</span>
       ${variantHtml}
       <span class="item-opts">
-        <input type="number" value="${h}" data-si="${si}" data-ii="${ii}" data-k="h" min="20" max="2800" ${isAuto?'data-auto="1" title="Wysokość liczona automatycznie — wpisz, by ustawić ręcznie"':''}/>
-        <span class="unit">${isAuto?'mm · auto':'mm'}</span>
+        <input type="number" value="${isSeat?450:h}" data-si="${si}" data-ii="${ii}" data-k="h" min="20" max="2800" ${isSeat?'disabled title="Siedzisko na wysokości 450 mm — stałe"':''} ${isAuto?'data-auto="1" title="Wysokość liczona automatycznie — wpisz, by ustawić ręcznie"':''}/>
+        <span class="unit">${isSeat?'mm nad podłogą':(isAuto?'mm · auto':'mm')}</span>
         ${it.type==='polka' && it.manual?`<button class="shelf-reset" data-si="${si}" data-ii="${ii}" title="Wróć do automatycznej wysokości">↺</button>`:''}
       </span>
+      ${isFloor?'<span class="item-floor-badge" title="Zawsze przy podłodze">podłoga</span>':`
       <button class="item-move" data-si="${si}" data-ii="${ii}" data-dir="-1" title="W górę">↑</button>
-      <button class="item-move" data-si="${si}" data-ii="${ii}" data-dir="1" title="W dół">↓</button>
+      <button class="item-move" data-si="${si}" data-ii="${ii}" data-dir="1" title="W dół">↓</button>`}
       <button class="item-del" data-si="${si}" data-ii="${ii}" title="Usuń">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       </button>
@@ -925,6 +1194,22 @@ function bindSectionEvents(){
       const si=+b.dataset.si, ii=+b.dataset.ii;
       delete STATE.sections[si].items[ii].manual;
       renderSections(); renderPreview(); updatePrice(); saveState();
+    });
+  });
+  document.querySelectorAll('.lift-input').forEach(inp=>{
+    inp.addEventListener('input',()=>{
+      const si = +inp.dataset.si;
+      let v = Number(inp.value)||0;
+      const maxLift = Math.max(0, sectionEffectiveH(si) - 200);
+      if(v < 0) v = 0;
+      if(v > maxLift) v = maxLift;
+      STATE.sections[si].lift = v;
+      renderPreview(); updatePrice(); saveState();
+      updateSbInfo();
+    });
+    inp.addEventListener('blur',()=>{
+      inp.value = STATE.sections[+inp.dataset.si].lift || 0;
+      renderSections();
     });
   });
   document.querySelectorAll('.shelf-balance').forEach(b=>{
@@ -978,9 +1263,38 @@ function bindSectionEvents(){
       e.stopPropagation();
       const si=+e.currentTarget.dataset.si, type=e.currentTarget.dataset.type;
       const t = ITEM_TYPES[type];
+      const sec = STATE.sections[si];
+      if(t.atFloor){
+        if(sec.items.some(x=>ITEM_TYPES[x.type] && ITEM_TYPES[x.type].atFloor)){
+          toast('Ta sekcja ma już miejsce na pralkę'); return;
+        }
+        if(t.minSecW && sec.w < t.minSecW){
+          toast(`Wymaga sekcji ≥ ${t.minSecW} mm (obecnie ${sec.w} mm)`); return;
+        }
+        if(sec.lift){ sec.lift = 0; toast('Sekcja opuszczona do podłogi — pralka musi stać na podłodze'); }
+      }
       const newIt = {type, h: t.defaultH || 300};
       if(t.variants) newIt.variant = t.variants[0].id;
-      STATE.sections[si].items.push(newIt);
+      sec.items.push(newIt);
+      if(t.atFloor) sortFloorItems(sec);
+      // siedzisko: płyta na 450 mm, 1200 mm wolnej wnęki nad nią, półka pod siedziskiem
+      if(type === 'siedzisko'){
+        sec.items = sec.items.filter(x=>x.type !== 'siedzisko');
+        const rest = sec.items.filter(x=>!(x.type==='polka' && !x.manual) && x.type!=='otwarta');
+        sec.items = [
+          ...rest,
+          {type:'polka', h:0},                       // płyta na 1650 mm (auto-wysokość = reszta)
+          {type:'otwarta', h:1200, manual:true},     // wolna wnęka nad siedziskiem
+          {type:'siedzisko', h:18},                  // płyta siedziska
+          {type:'polka', h:432, manual:true},        // przestrzeń pod siedziskiem (450 − 18)
+        ];
+      }
+      // wnętrze widoczne tylko w podglądzie "Wnętrze" — przełącz automatycznie
+      if(STATE.previewView === 'front' && (STATE.frontMode==='sliding' || STATE.sectionFronts[si])){
+        STATE.previewView = 'open';
+        document.querySelectorAll('.prev-tab').forEach(t2=>t2.classList.toggle('on', t2.dataset.view==='open'));
+        toast(`${t.name} dodane — podgląd przełączony na wnętrze`);
+      }
       document.querySelector(`.add-item-pop[data-si="${si}"]`).classList.remove('open');
       renderSections(); renderPreview(); updatePrice(); saveState();
     });
@@ -1631,7 +1945,60 @@ function renderFrontSections(){
 // ────────────────────────────────────────────────────────────
 //  PREVIEW (live SVG)
 // ────────────────────────────────────────────────────────────
+function updatePreviewFoot(){
+  const {w,h,d} = STATE.dim;
+  const bl = STATE.blenda || {left:0,right:0,top:0};
+  const pfd = document.getElementById('pfDim');
+  if(pfd) pfd.textContent = (bl.left||bl.right||bl.top)
+    ? `${cabinetW()} × ${cabinetH()} × ${d} (korpus)`
+    : `${w} × ${h} × ${d}`;
+  const n = STATE.sections.length;
+  const pl = n===1?'sekcja':(n<5?'sekcje':'sekcji');
+  const pfs = document.getElementById('pfSections');
+  if(pfs) pfs.textContent = `${n} ${pl}`;
+  const pfb = document.getElementById('pfBoard');
+  if(pfb) pfb.textContent = `~${computeBoardArea()} m²`;
+  const pht = document.getElementById('phType');
+  if(pht) pht.textContent = STATE.typeName;
+}
+
+// ── Przełączanie 2D / 3D ────────────────────────────────────
+function applyViewMode(){
+  const is3d = STATE.previewView === '3d';
+  const svg = document.getElementById('cabinetSvg');
+  const host = document.getElementById('view3d');
+  const modeLbl = document.getElementById('phMode');
+  if(svg) svg.hidden = is3d;
+  if(host) host.hidden = !is3d;
+  if(modeLbl) modeLbl.textContent = is3d ? 'podgląd 3D' : 'podgląd 2D';
+  if(is3d && window.ZT3D){
+    window.ZT3D.show().then(ok=>{
+      if(!ok){
+        toast('Nie udało się uruchomić widoku 3D — wracam do 2D');
+        STATE.previewView = 'front';
+        document.querySelectorAll('.prev-tab').forEach(x=>x.classList.toggle('on', x.dataset.view==='front'));
+        applyViewMode();
+        renderPreview();
+      }
+    }).catch(e=>{
+      console.error('3D show error', e);
+      toast('Nie udało się uruchomić widoku 3D — wracam do 2D');
+      STATE.previewView = 'front';
+      document.querySelectorAll('.prev-tab').forEach(x=>x.classList.toggle('on', x.dataset.view==='front'));
+      applyViewMode();
+      renderPreview();
+    });
+  }
+}
+
 function renderPreview(){
+  applyViewMode();
+  if(STATE.previewView === '3d'){
+    normalizeShelfHeights();
+    if(window.ZT3D && window.ZT3D.isReady()) window.ZT3D.update();
+    updatePreviewFoot();
+    return;
+  }
   normalizeShelfHeights();
   const svg = document.getElementById('cabinetSvg');
   const d = STATE.dim.d;
@@ -1663,7 +2030,44 @@ function renderPreview(){
   content += `<line x1="${x0-30}" y1="${y0+H}" x2="${x0+W+30}" y2="${y0+H}" stroke="rgba(26,26,23,0.25)" stroke-width="1"/>`;
   content += dimLabel(x0,y0+H+24,x0+W,y0+H+24,`${w} mm`,'h');
   content += dimLabel(x0-32,y0,x0-32,y0+H,`${h} mm`,'v');
-  content += `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="${fill}" stroke="${dark}" stroke-width="1.2"/>`;
+  const sl = STATE.slope;
+  if(sl && sl.on){
+    // korpus jako wielokąt pod skosem (respektuje odcinek skosu)
+    const yFor = (hMm) => y0 + H - (hMm / h) * H;
+    const Wmm = cabinetW();
+    const bl0 = STATE.blenda || {left:0,right:0,top:0};
+    const flat = Math.max(0, Math.min(sl.flat || 0, STATE.dim.w));
+    const pxFor = (xMm) => x0 + (xMm / w) * W;
+    // profil sufitu liczony z cabinetHAt (skos zakotwiczony we wnęce)
+    const xsMm = [0];
+    let accX = 18;
+    STATE.sections.forEach(s=>{ xsMm.push(accX); accX += s.w + 18; });
+    xsMm.push(Wmm);
+    // punkt złamania skosu w układzie korpusu
+    const breakX = sl.side === 'right'
+      ? flat - (bl0.left||0) - 3
+      : (STATE.dim.w - flat) - (bl0.left||0) - 3;
+    if(breakX > 0 && breakX < Wmm) xsMm.push(breakX);
+    const uniq = [...new Set(xsMm.filter(v=>v>=0 && v<=Wmm))].sort((a,b)=>a-b);
+    const top = uniq.map(xm=>`${pxFor(xm)},${yFor(cabinetHAt(xm))}`).join(' ');
+    content += `<polygon points="${top} ${x0+W},${y0+H} ${x0},${y0+H}" fill="${fill}" stroke="${dark}" stroke-width="1.2"/>`;
+    // linia skosu (sufit)
+    content += `<polyline points="${top}" fill="none" stroke="${dark}" stroke-width="1.6"/>`;
+    // wymiar niższej krawędzi
+    const loSide = sl.side === 'right' ? Wmm : 0;
+    const yLo = yFor(cabinetHAt(loSide));
+    const lowX = sl.side === 'right' ? x0+W+14 : x0-14;
+    content += `<text x="${lowX}" y="${yLo + (y0+H-yLo)/2}" font-family="JetBrains Mono" font-size="8" fill="#6a6a62" text-anchor="middle" transform="rotate(-90 ${lowX} ${yLo + (y0+H-yLo)/2})">${Math.round(cabinetHAt(loSide))} mm</text>`;
+    // wymiar prostego sufitu (gdy jest)
+    if(flat > 0 && breakX > 0 && breakX < Wmm){
+      const sx0 = sl.side === 'right' ? pxFor(0) : pxFor(breakX);
+      const sx1 = sl.side === 'right' ? pxFor(breakX) : pxFor(Wmm);
+      content += `<line x1="${sx0}" y1="${y0-12}" x2="${sx1}" y2="${y0-12}" stroke="${dark}" stroke-width=".8" opacity=".7"/>`;
+      content += `<text x="${(sx0+sx1)/2}" y="${y0-16}" font-family="JetBrains Mono" font-size="7.5" fill="#6a6a62" text-anchor="middle">prosty sufit ${flat} mm (wnęka)</text>`;
+    }
+  } else {
+    content += `<rect x="${x0}" y="${y0}" width="${W}" height="${H}" fill="${fill}" stroke="${dark}" stroke-width="1.2"/>`;
+  }
 
   const totalW = STATE.sections.reduce((a,s)=>a+s.w,0)||1;
   let cx = x0;
@@ -1676,9 +2080,21 @@ function renderPreview(){
     // przesunięcie sekcji jeśli obejmuje ją pas poziomy
     const spanned = bandSpans(si);
     let secY = y0, secH = H;
+    // skos — sekcja przycięta do sufitu (najniższy punkt sekcji)
+    if(sl && sl.on){
+      const secCabH = sectionCabinetH(si);
+      secH = (secCabH / h) * H;
+      secY = y0 + (H - secH);
+    }
     if(spanned && band){
-      if(band.position==='top'){ secY = y0 + bandPx; secH = H - bandPx; }
-      else { secY = y0; secH = H - bandPx; }
+      if(band.position==='top'){ secY = secY + bandPx; secH = secH - bandPx; }
+      else { secH = secH - bandPx; }
+    }
+    // uskok — nie zmienia wysokości sekcji (redukuje głębokość formatek)
+    // sekcja podniesiona nad podłogą
+    if(s.lift){
+      const liftPx = (s.lift / h) * H;
+      secH -= liftPx;
     }
     if(STATE.previewView==='open'){
       drawInterior(s,cx,secY,sw,secH,matC,dark,content=>'');
@@ -1696,6 +2112,15 @@ function renderPreview(){
       content += `<line x1="${cx+sw}" y1="${secY}" x2="${cx+sw}" y2="${secY+secH}" stroke="${dark}" stroke-width="1"/>`;
     }
     content += `<text x="${cx+sw/2}" y="${y0+H+16}" font-family="JetBrains Mono" font-size="9" fill="#6a6a62" text-anchor="middle">${Math.round(s.w)}mm</text>`;
+    // wolna przestrzeń pod podniesioną sekcją
+    if(s.lift){
+      const liftPx = (s.lift / h) * H;
+      const vy = secY + secH;
+      content += `<rect x="${cx+1}" y="${vy}" width="${sw-2}" height="${liftPx}" fill="#ede7d6" stroke="${dark}" stroke-width=".7" stroke-dasharray="4 3"/>`;
+      if(liftPx > 18 && sw > 50){
+        content += `<text x="${cx+sw/2}" y="${vy+liftPx/2+3}" font-family="JetBrains Mono" font-size="7.5" fill="#6a6a62" text-anchor="middle">wolne ${s.lift} mm</text>`;
+      }
+    }
     cx += sw;
   });
 
@@ -1717,6 +2142,22 @@ function renderPreview(){
     content += `<line x1="${bx0+6}" y1="${by+bandPx/2}" x2="${bx0+bw-6}" y2="${by+bandPx/2}" stroke="${shade(detail,0.5)}" stroke-width=".5" stroke-dasharray="4 4" opacity=".5"/>`;
     // etykieta
     content += `<text x="${bx0+bw/2}" y="${by+bandPx/2+3}" font-family="JetBrains Mono" font-size="8.5" fill="#6a6a62" text-anchor="middle">PÓŁKA PRZELOTOWA · ${band.h} mm</text>`;
+  }
+
+  // ── Uskok (komin / rura) — rysowany jako przeszkoda ──
+  if(STATE.notch && STATE.notch.on){
+    const n = STATE.notch;
+    const nw = Math.min(W, (n.w / w) * W);
+    const nh = Math.min(H, (n.h / h) * H);
+    const nx = n.side === 'left' ? x0 : x0 + W - nw;
+    const ny = n.from === 'top' ? y0 : y0 + H - nh;
+    content += `<defs><pattern id="notchHatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="7" stroke="${dark}" stroke-width="1.1" opacity=".5"/></pattern></defs>`;
+    content += `<rect x="${nx}" y="${ny}" width="${nw}" height="${nh}" fill="none"/>`;
+    content += `<rect x="${nx}" y="${ny}" width="${nw}" height="${nh}" fill="url(#notchHatch)" stroke="${dark}" stroke-width="1" stroke-dasharray="5 3" opacity=".75"/>`;
+    if(nw > 44 && nh > 26){
+      content += `<text x="${nx+nw/2}" y="${ny+nh/2-3}" font-family="JetBrains Mono" font-size="8" fill="#6a6a62" text-anchor="middle">USKOK</text>`;
+      content += `<text x="${nx+nw/2}" y="${ny+nh/2+8}" font-family="JetBrains Mono" font-size="7" fill="#6a6a62" text-anchor="middle">głęb. −${n.d||150} mm</text>`;
+    }
   }
 
   // Base / legs overlay — visible plinth or legs at the bottom region of the cabinet
@@ -1992,6 +2433,23 @@ function drawInteriorContent(s,x,y,sw,sh,mat,dark){
       out += `<line x1="${x+4}" y1="${y1}" x2="${x+sw-4}" y2="${y1}" stroke="${dark}" stroke-width=".9"/>`;
     } else if(it.type==='kosz'){
       out += drawBasket(it, x, y0, y1, sw, hpx, dark);
+    } else if(it.type==='siedzisko'){
+      // płyta siedziska — pogrubiona, wzmocniona
+      const th = Math.max(3, Math.min(7, hpx));
+      out += `<rect x="${x+3}" y="${y1-th}" width="${sw-6}" height="${th}" fill="${shade(dark,0.5)}" stroke="${dark}" stroke-width="1" rx="1"/>`;
+      if(sw > 70) out += `<text x="${x+sw/2}" y="${y1-th-3}" font-family="JetBrains Mono" font-size="6.5" fill="${dark}" text-anchor="middle" opacity=".75">SIEDZISKO 450</text>`;
+    } else if(it.type==='pralka'){
+      // wnęka na pralkę — obrys + bęben
+      out += `<rect x="${x+4}" y="${y0+3}" width="${sw-8}" height="${hpx-6}" fill="none" stroke="${dark}" stroke-width="1.1" stroke-dasharray="6 3" rx="2"/>`;
+      const cx2 = x+sw/2, cy2 = y0+hpx*0.56;
+      const r = Math.min(sw*0.26, hpx*0.3);
+      if(r > 6){
+        out += `<circle cx="${cx2}" cy="${cy2}" r="${r}" fill="none" stroke="${dark}" stroke-width="1"/>`;
+        out += `<circle cx="${cx2}" cy="${cy2}" r="${r*0.62}" fill="none" stroke="${dark}" stroke-width=".6" opacity=".6"/>`;
+        out += `<circle cx="${x+sw*0.22}" cy="${y0+hpx*0.16}" r="1.6" fill="${dark}" opacity=".7"/>`;
+        out += `<circle cx="${x+sw*0.32}" cy="${y0+hpx*0.16}" r="1.6" fill="${dark}" opacity=".7"/>`;
+      }
+      if(hpx>34) out += `<text x="${cx2}" y="${y1-6}" font-family="JetBrains Mono" font-size="7" fill="${dark}" text-anchor="middle" opacity=".75">PRALKA</text>`;
     } else if(it.type==='otwarta'){
       // nothing — just the bottom line
       if(hpx>20) out += `<line x1="${x+4}" y1="${y1}" x2="${x+sw-4}" y2="${y1}" stroke="${dark}" stroke-width=".6" opacity=".5" stroke-dasharray="2 2"/>`;
@@ -2285,6 +2743,137 @@ function addFiles(files){
   renderFileList();
 }
 
+// ────────────────────────────────────────────────────────────
+//  SZKICOWNIK WNĘKI — siatka + obrys, wynik jako PNG do maila
+// ────────────────────────────────────────────────────────────
+window.__sketch = window.__sketch || { pts: [], closed: false, gridMm: 100, dataUrl: null };
+
+function initSketch(){
+  const modal = document.getElementById('sketchModal');
+  const canvas = document.getElementById('sketchCanvas');
+  if(!modal || !canvas || modal._bound) return;
+  modal._bound = true;
+  const ctx = canvas.getContext('2d');
+  const GRID = 40; // px kratki na canvasie
+  const S = window.__sketch;
+
+  function draw(){
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
+    // siatka
+    ctx.strokeStyle = '#e6e0d0'; ctx.lineWidth = 1;
+    for(let x=0;x<=W;x+=GRID){ ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,H); ctx.stroke(); }
+    for(let y=0;y<=H;y+=GRID){ ctx.beginPath(); ctx.moveTo(0,y+.5); ctx.lineTo(W,y+.5); ctx.stroke(); }
+    // grubsze linie co 5 kratek
+    ctx.strokeStyle = '#d4cbb4'; ctx.lineWidth = 1.4;
+    for(let x=0;x<=W;x+=GRID*5){ ctx.beginPath(); ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,H); ctx.stroke(); }
+    for(let y=0;y<=H;y+=GRID*5){ ctx.beginPath(); ctx.moveTo(0,y+.5); ctx.lineTo(W,y+.5); ctx.stroke(); }
+    // podłoga
+    ctx.strokeStyle = '#b8915a'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(0,H-GRID+.5); ctx.lineTo(W,H-GRID+.5); ctx.stroke();
+    ctx.fillStyle = '#b8915a'; ctx.font = '13px monospace';
+    ctx.fillText('podłoga', 8, H-GRID-8);
+
+    if(!S.pts.length) return;
+    // wypełnienie
+    ctx.beginPath();
+    S.pts.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+    if(S.closed) ctx.closePath();
+    if(S.closed){ ctx.fillStyle = 'rgba(184,145,90,0.16)'; ctx.fill(); }
+    ctx.strokeStyle = '#1a1a17'; ctx.lineWidth = 2.4; ctx.stroke();
+    // punkty + wymiary odcinków
+    S.pts.forEach((p,i)=>{
+      ctx.beginPath(); ctx.arc(p.x,p.y,5,0,Math.PI*2);
+      ctx.fillStyle = i===0 ? '#a8552f' : '#1a1a17'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+    });
+    const segs = S.closed ? S.pts.length : S.pts.length - 1;
+    ctx.font = '12px monospace'; ctx.fillStyle = '#6a6a62';
+    for(let i=0;i<segs;i++){
+      const a = S.pts[i], b = S.pts[(i+1)%S.pts.length];
+      const dx = Math.abs(b.x-a.x), dy = Math.abs(b.y-a.y);
+      const mm = Math.round((Math.hypot(dx,dy)/GRID) * S.gridMm);
+      if(mm < 30) continue;
+      const mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
+      const label = `${mm} mm`;
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.fillRect(mx-tw/2-3, my-14, tw+6, 15);
+      ctx.fillStyle = '#6a6a62';
+      ctx.fillText(label, mx-tw/2, my-3);
+    }
+  }
+
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    const t = (e.touches && e.touches[0]) || e;
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    const x = (t.clientX - r.left) * sx, y = (t.clientY - r.top) * sy;
+    return { x: Math.round(x/GRID)*GRID, y: Math.round(y/GRID)*GRID };
+  }
+
+  function addPoint(e){
+    e.preventDefault();
+    if(S.closed) return;
+    const p = pos(e);
+    if(S.pts.length >= 3){
+      const f = S.pts[0];
+      if(Math.hypot(p.x-f.x, p.y-f.y) < GRID*0.75){ S.closed = true; draw(); return; }
+    }
+    if(S.pts.length){
+      const l = S.pts[S.pts.length-1];
+      if(l.x===p.x && l.y===p.y) return;
+    }
+    S.pts.push(p);
+    draw();
+  }
+
+  canvas.addEventListener('click', addPoint);
+  canvas.addEventListener('touchstart', addPoint, {passive:false});
+
+  document.getElementById('skUndo').onclick = ()=>{ if(S.closed){ S.closed=false; } else { S.pts.pop(); } draw(); };
+  document.getElementById('skClose2').onclick = ()=>{ if(S.pts.length>=3){ S.closed=true; draw(); } else toast('Potrzebne min. 3 punkty'); };
+  document.getElementById('skClear').onclick = ()=>{ S.pts=[]; S.closed=false; draw(); };
+  document.getElementById('skGridMm').addEventListener('input', e=>{
+    S.gridMm = Math.max(10, Number(e.target.value)||100); draw();
+  });
+
+  function openModal(){
+    modal.classList.add('show');
+    document.getElementById('skGridMm').value = S.gridMm;
+    draw();
+  }
+  function closeModal(){ modal.classList.remove('show'); }
+
+  document.getElementById('sketchOpen').onclick = openModal;
+  document.getElementById('sketchClose').onclick = closeModal;
+  document.getElementById('skCancel').onclick = closeModal;
+  modal.addEventListener('click', e=>{ if(e.target===modal) closeModal(); });
+
+  document.getElementById('skSave').onclick = ()=>{
+    if(S.pts.length < 3){ toast('Narysuj obrys — min. 3 punkty'); return; }
+    if(!S.closed) S.closed = true;
+    draw();
+    S.dataUrl = canvas.toDataURL('image/png');
+    const prev = document.getElementById('sketchPreview');
+    const thumb = document.getElementById('sketchThumb');
+    if(thumb) thumb.src = S.dataUrl;
+    if(prev) prev.hidden = false;
+    closeModal();
+    toast('Szkic zapisany — dołączymy go do zapytania');
+    saveState();
+  };
+
+  const clearBtn = document.getElementById('sketchClear');
+  if(clearBtn) clearBtn.onclick = ()=>{
+    S.pts=[]; S.closed=false; S.dataUrl=null;
+    const prev = document.getElementById('sketchPreview');
+    if(prev) prev.hidden = true;
+    draw();
+  };
+}
+
 function initFileUpload(){
   const drop = document.getElementById('fileDrop');
   const input = document.getElementById('leadFiles');
@@ -2337,6 +2926,7 @@ function buildOrderSpec(refNo){
     const front = STATE.frontMode==='sliding' ? null : STATE.sectionFronts[i];
     return {
       idx: i+1, w: s.w,
+      lift: s.lift ? `${s.lift} mm nad podłogą` : null,
       front: STATE.frontMode==='sliding' ? '—' : (front?'z frontem':'otwarta'),
       items
     };
@@ -2356,6 +2946,12 @@ function buildOrderSpec(refNo){
       type: STATE.typeName || STATE.type,
       dimensions_mm: { w: cabinetW(), h: cabinetH(), d },
       niche_mm: { w: STATE.dim.w, h: STATE.dim.h, d },
+      notch: (STATE.notch && STATE.notch.on)
+        ? `${STATE.notch.side==='left'?'Lewa':'Prawa'} ściana, od ${STATE.notch.from==='top'?'góry':'dołu'} — ${STATE.notch.w} × ${STATE.notch.h} × głęb. ${STATE.notch.d||150} mm`
+        : '—',
+      slope: (STATE.slope && STATE.slope.on)
+        ? `Sufit opada w ${STATE.slope.side==='right'?'prawo':'lewo'} — ${cabinetH()} mm → ${STATE.slope.hLow} mm${(STATE.slope.flat>0)?`, prosty sufit ${STATE.slope.flat} mm`:' (skos od krawędzi)'}`
+        : '—',
       uneven_walls: !!STATE.uneven,
       base: baseTxt,
       sections_count: STATE.sections.length,
@@ -2427,7 +3023,7 @@ function buildSpecHTML(refNo){
   const sections = s.furniture.sections.map(sec=>`
     <div style="margin-bottom:14px;padding:10px 14px;background:#fafaf6;border-left:3px solid #b8915a">
       <div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;color:#6a6a62;margin-bottom:6px">
-        SEKCJA ${sec.idx} · ${sec.w} mm · ${sec.front}
+        SEKCJA ${sec.idx} · ${sec.w} mm · ${sec.front}${sec.lift?` · <strong style="color:#a8552f">${sec.lift}</strong>`:''}
       </div>
       <ul style="margin:0;padding-left:20px;color:#1a1a17;font-size:13px;line-height:1.6">
         ${sec.items.map(i=>`<li>${i}</li>`).join('')}
@@ -2463,6 +3059,9 @@ function buildSpecHTML(refNo){
   ${s.furniture.uneven_walls ? TR('Ściany', '<strong style="color:#a8552f">krzywe — wymaga kontaktu</strong>') : ''}
   ${TR('Osadzenie', s.furniture.base)}
   ${TR('Liczba sekcji', s.furniture.sections_count)}
+  ${s.furniture.slope && s.furniture.slope !== '—' ? TR('Skośny sufit', `<strong style="color:#a8552f">${s.furniture.slope}</strong>`) : ''}
+  ${s.furniture.notch && s.furniture.notch !== '—' ? TR('Uskok / komin', `<strong style="color:#a8552f">${s.furniture.notch}</strong>`) : ''}
+  ${(window.__sketch && window.__sketch.dataUrl) ? TR('Szkic wnęki', `<strong style="color:#a8552f">TAK — w załączniku (${s.ref}-szkic-wneki.png)</strong>`) : ''}
   ${s.furniture.band && s.furniture.band !== '—' ? TR('Przelotowa półka', s.furniture.band) : ''}
   ${s.furniture.blenda && s.furniture.blenda !== '—' ? TR('Blendy maskujące', s.furniture.blenda) : ''}
   ${TR('Dekor korpusu', corpusName)}
@@ -2475,7 +3074,7 @@ function buildSpecHTML(refNo){
 
   <tr><td colspan="2"><h3 style="margin:14px 0 6px;font-family:'Instrument Serif',serif;font-weight:400;font-size:17px;border-bottom:1px solid #d9d3c4;padding-bottom:4px">Kosztorys (orientacyjnie)</h3></td></tr>
   ${TR('Materiał', fmtZL(p.material + p.cutting + p.edging + p.labor + (p.back||0)))}
-  ${TR('Projekt', fmtZL(p.design))}
+  ${p.design ? TR('Projekt', fmtZL(p.design)) : ''}
   ${TR('Akcesoria', fmtZL(p.sections_inserts + p.hardware))}
   ${TR('Zużycie płyty', p.board_m2.toFixed(2).replace('.',',') + ' m²')}
 
@@ -2586,6 +3185,39 @@ async function submitOrder(){
     if(pngFront) fd.append('files', pngFront, `${ref}-preview-front.png`);
     const pngOpen = await renderViewToPNG('open');
     if(pngOpen) fd.append('files', pngOpen, `${ref}-preview-open.png`);
+    // render 3D
+    if(window.ZT3D){
+      const prevView = STATE.previewView;
+      const prevFronts = window.__v3dShowFronts;
+      STATE.previewView = '3d';
+      applyViewMode();
+      await new Promise(r=>setTimeout(r, 700));
+      // 1) izometryk z frontami — "jak będzie wyglądać"
+      window.__v3dShowFronts = true;
+      window.ZT3D.update();
+      await new Promise(r=>setTimeout(r, 350));
+      const pngIsoFront = await window.ZT3D.toIsoPNG();
+      if(pngIsoFront) fd.append('files', pngIsoFront, `${ref}-3d-front-izo.png`);
+      // 2) izometryk bez frontów — układ wnętrza
+      window.__v3dShowFronts = false;
+      window.ZT3D.update();
+      await new Promise(r=>setTimeout(r, 350));
+      const pngIsoOpen = await window.ZT3D.toIsoPNG();
+      if(pngIsoOpen) fd.append('files', pngIsoOpen, `${ref}-3d-wnetrze-izo.png`);
+      // 3) perspektywa
+      const png3d = await window.ZT3D.toPNG();
+      if(png3d) fd.append('files', png3d, `${ref}-3d-perspektywa.png`);
+      window.__v3dShowFronts = prevFronts;
+      STATE.previewView = prevView;
+      applyViewMode();
+      renderPreview();
+    }
+    // szkic wnęki narysowany przez klienta
+    const sk = window.__sketch;
+    if(sk && sk.dataUrl){
+      const blob = await (await fetch(sk.dataUrl)).blob();
+      fd.append('files', blob, `${ref}-szkic-wneki.png`);
+    }
   } catch(e) {
     console.warn('Preview render failed (ignoring):', e);
   }
@@ -2652,6 +3284,7 @@ function renderSummary(){
         <div class="ss-sec-head">
           <span class="ss-sec-idx mono">S${i+1}</span>
           <span class="ss-sec-w mono">${s.w} mm</span>
+          ${s.lift?`<span class="ss-sec-w mono" style="color:var(--clay)">↑${s.lift} mm</span>`:''}
           ${frontBadge}
         </div>
         <ul class="ss-items">${items}</ul>
@@ -2711,6 +3344,8 @@ function renderSummary(){
         <div class="ss-kv"><span class="ss-k">Typ</span><span class="ss-v">${STATE.typeName}</span></div>
         <div class="ss-kv"><span class="ss-k">Wnęka</span><span class="ss-v mono">${STATE.dim.w} × ${STATE.dim.h} × ${d} mm</span></div>
         <div class="ss-kv"><span class="ss-k">Korpus mebla</span><span class="ss-v mono">${cabinetW()} × ${cabinetH()} × ${d} mm</span></div>
+        ${(STATE.slope&&STATE.slope.on)?`<div class="ss-kv"><span class="ss-k">Skośny sufit</span><span class="ss-v" style="color:var(--clay)">opada w ${STATE.slope.side==='right'?'prawo':'lewo'} · ${cabinetH()} → ${STATE.slope.hLow} mm${(STATE.slope.flat>0)?` · prosty ${STATE.slope.flat} mm`:''}</span></div>`:''}
+        ${(STATE.notch&&STATE.notch.on)?`<div class="ss-kv"><span class="ss-k">Uskok / komin</span><span class="ss-v" style="color:var(--clay)">${STATE.notch.side==='left'?'lewa':'prawa'} ściana, od ${STATE.notch.from==='top'?'góry':'dołu'} · ${STATE.notch.w} × ${STATE.notch.h} × gł. ${STATE.notch.d||150} mm</span></div>`:''}
         <div class="ss-kv"><span class="ss-k">Osadzenie</span><span class="ss-v">${baseTxt}</span></div>
         ${STATE.band ? `<div class="ss-kv"><span class="ss-k">Przelotowa półka</span><span class="ss-v">${STATE.band.position==='top'?'Górna':'Dolna'} ${STATE.band.h} mm · sekcje ${STATE.band.from+1}–${STATE.band.to+1}</span></div>` : ''}
         ${(()=>{const b=STATE.blenda||{};const p=[];if(b.left)p.push(`lewa ${b.left}`);if(b.right)p.push(`prawa ${b.right}`);if(b.top)p.push(`górna ${b.top}`);return p.length?`<div class="ss-kv"><span class="ss-k">Blendy</span><span class="ss-v">${p.join(' · ')} mm</span></div>`:'';})()}
@@ -2737,7 +3372,7 @@ function renderSummary(){
       <div class="ss-block ss-price-block">
         <div class="ss-block-h">Kosztorys (orientacyjnie)</div>
         <div class="ss-kv"><span class="ss-k">Materiał</span><span class="ss-v mono">${fmtPrice(pb.materialCost + pb.cuttingCost + pb.edgingCost + pb.laborCost + pb.backCost)}</span></div>
-        <div class="ss-kv"><span class="ss-k">Projekt</span><span class="ss-v mono">${fmtPrice(pb.designCost)}</span></div>
+        ${pb.designCost ? `<div class="ss-kv"><span class="ss-k">Projekt</span><span class="ss-v mono">${fmtPrice(pb.designCost)}</span></div>` : ''}
         <div class="ss-kv"><span class="ss-k">Akcesoria</span><span class="ss-v mono">${fmtPrice(pb.accCost + pb.hardwareCost)}</span></div>
       </div>
     </div>
@@ -2795,6 +3430,24 @@ function init(){
       renderPreview(); saveState();
     });
   });
+  // widok ustawia renderPreview() → applyViewMode(); nie wołamy tu drugi raz
+  // przełączniki widoku 3D
+  const v3f = document.getElementById('v3dFronts');
+  if(v3f) v3f.addEventListener('click',()=>{
+    const on = window.__v3dShowFronts !== true;
+    window.__v3dShowFronts = on;
+    v3f.classList.toggle('on', on);
+    v3f.textContent = on ? 'Ukryj fronty' : 'Pokaż fronty';
+    // fronty ON → blokada w izometryku; fronty OFF → swobodny obrót wnętrza
+    if(window.ZT3D){
+      window.ZT3D.update();
+      window.ZT3D.setIso(on);
+    }
+    const hint = document.querySelector('.view3d-hint');
+    if(hint) hint.textContent = on
+      ? 'Widok izometryczny — obrót zablokowany'
+      : 'Przeciągnij, aby obrócić · kółko = zoom';
+  });
 
   // lead
   const leadKeys = ['name','email','phone','city','notes'];
@@ -2806,6 +3459,7 @@ function init(){
     el.addEventListener('input',()=>{ STATE.lead[k] = el.value; saveState(); });
   });
   initFileUpload();
+  initSketch();
   const cons = document.getElementById('leadConsent');
   cons.checked = !!STATE.lead.consent;
   cons.addEventListener('change',()=>{ STATE.lead.consent = cons.checked; saveState(); });

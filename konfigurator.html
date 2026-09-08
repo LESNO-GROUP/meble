@@ -87,6 +87,14 @@
   .prev-tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .prev-canvas{flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:2rem;overflow:hidden;background-image:linear-gradient(rgba(26,26,23,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,26,23,.04) 1px,transparent 1px);background-size:40px 40px}
   #cabinetSvg{max-width:100%;max-height:100%;overflow:visible;filter:drop-shadow(0 18px 36px rgba(26,26,23,.08))}
+  #cabinetSvg[hidden]{display:none !important}
+  .view3d{position:absolute;inset:0;display:block}
+  .view3d[hidden]{display:none !important}
+  .view3d canvas{display:block;width:100%;height:100%}
+  .view3d-hint{position:absolute;left:50%;bottom:.9rem;transform:translateX(-50%);z-index:2;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute);background:rgba(245,241,232,.85);padding:.3rem .7rem;border-radius:2px;pointer-events:none}
+  .view3d-ctl{position:absolute;left:1rem;top:1rem;z-index:3;display:flex;gap:.35rem}
+  .v3d-btn{padding:.32rem .7rem;border:1px solid var(--line);background:rgba(245,241,232,.92);color:var(--ink-mute);border-radius:2px;font-family:var(--ff-mono);font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .v3d-btn.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
   .prev-foot{padding:.7rem 1.4rem;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:1rem;font-family:var(--ff-mono);font-size:.7rem;color:var(--ink-mute);letter-spacing:.04em;background:rgba(255,255,255,.5)}
   .prev-foot strong{color:var(--ink);font-weight:500}
 
@@ -124,6 +132,38 @@
   .dim-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem;margin-bottom:1rem}
   .blenda-block{margin:1.25rem 0;padding:1rem 1.1rem;border:1px solid var(--line);border-radius:2px;background:var(--card)}
   .blenda-title{font-family:var(--ff-serif);font-size:1.05rem}
+  .blenda-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+  .blenda-row[hidden]{display:none !important}
+  .sketch-open-btn{flex-shrink:0;padding:.55rem 1rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:2px;font-family:var(--ff-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .sketch-open-btn:hover{background:var(--accent);border-color:var(--accent)}
+  .sketch-preview{margin-top:.9rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+  .sketch-preview[hidden]{display:none !important}
+  .sketch-preview img{width:150px;height:auto;border:1px solid var(--line);border-radius:2px;background:#fff;display:block}
+  .sketch-preview-meta{display:flex;flex-direction:column;gap:.35rem;font-size:.75rem;color:var(--ink-mute)}
+  .sketch-clear{align-self:flex-start;background:none;border:none;padding:0;color:var(--clay);font-size:.75rem;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+  /* Szkicownik — modal */
+  .sk-modal{position:fixed;inset:0;z-index:200;background:rgba(26,26,23,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:1.25rem}
+  .sk-modal.show{display:flex}
+  .sk-box{background:var(--paper);border-radius:3px;max-width:820px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+  .sk-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.1rem 1.35rem;border-bottom:1px solid var(--line)}
+  .sk-head h3{font-family:var(--ff-serif);font-size:1.3rem;font-weight:400}
+  .sk-head p{font-size:.8rem;color:var(--ink-mute);margin-top:.25rem;line-height:1.45;max-width:52ch}
+  .sk-close{background:none;border:none;font-size:1.5rem;line-height:1;color:var(--ink-mute);cursor:pointer;padding:0 .2rem}
+  .sk-close:hover{color:var(--ink)}
+  .sk-body{padding:1.1rem 1.35rem}
+  .sk-canvas-wrap{border:1px solid var(--line);background:#fff;border-radius:2px;overflow:hidden}
+  #sketchCanvas{display:block;width:100%;height:auto;cursor:crosshair;touch-action:none}
+  .sk-tools{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.85rem}
+  .sk-tools button{padding:.45rem .85rem;border:1px solid var(--line);background:var(--card);border-radius:2px;font-size:.78rem;cursor:pointer;color:var(--ink)}
+  .sk-tools button:hover{border-color:var(--ink)}
+  .sk-tools button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .sk-hint{font-size:.75rem;color:var(--ink-mute);margin-top:.6rem;line-height:1.5}
+  .sk-scale{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--ink-mute);margin-left:auto}
+  .sk-scale input{width:80px;padding:.35rem .45rem;border:1px solid var(--line);border-radius:2px;font-family:var(--ff-mono);font-size:.78rem;background:var(--paper)}
+  .sk-foot{display:flex;gap:.6rem;justify-content:flex-end;padding:1rem 1.35rem;border-top:1px solid var(--line)}
+  .sk-foot .sk-cancel{padding:.6rem 1.1rem;border:1px solid var(--line);background:var(--card);border-radius:2px;cursor:pointer;font-size:.85rem}
+  .sk-foot .sk-save{padding:.6rem 1.4rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);border-radius:2px;cursor:pointer;font-size:.85rem;font-weight:500}
+  .sk-foot .sk-save:hover{background:var(--accent);border-color:var(--accent)}
   .blenda-sub{font-size:.78rem;color:var(--ink-mute);margin-top:.2rem;line-height:1.45;max-width:56ch}
   .blenda-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.65rem;margin-top:.85rem}
   .blenda-cell{display:flex;flex-direction:column;gap:.3rem}
@@ -204,6 +244,15 @@
   .sec-sum{font-family:var(--ff-mono);font-size:.72rem;color:var(--ink-mute)}
   .sec-sum span{margin-left:.35rem;font-weight:500}
   .sec-sum-note{font-family:var(--ff-sans);font-size:.66rem;color:var(--ink-mute);opacity:.75;margin-left:.3rem}
+  .sec-lift{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.5rem .75rem;border-top:1px solid var(--line);background:var(--paper-2)}
+  .sec-lift label{font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-mute)}
+  .sec-lift-input{display:inline-flex;align-items:center;gap:.3rem;border:1px solid var(--line);border-radius:2px;background:var(--card);padding:.15rem .4rem}
+  .sec-lift-input input{width:62px;border:none;background:transparent;font-family:var(--ff-mono);font-size:.78rem;text-align:right;color:var(--ink)}
+  .sec-lift-input input:disabled{color:var(--ink-mute);opacity:.6}
+  .sec-lift-input .unit{font-family:var(--ff-mono);font-size:.62rem;color:var(--ink-mute)}
+  .sec-lift-note{font-size:.66rem;color:var(--ink-mute);opacity:.8;flex:1;min-width:140px}
+  .seat-warn{margin-top:.4rem;padding:.45rem .6rem;background:rgba(168,85,47,.08);border-left:2px solid var(--clay);border-radius:0 2px 2px 0;font-size:.72rem;line-height:1.45;color:var(--ink)}
+  .item-floor-badge{font-family:var(--ff-mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-mute);border:1px solid var(--line);border-radius:2px;padding:.15rem .3rem;white-space:nowrap}
   .shelf-balance{margin-left:.6rem;font-family:var(--ff-mono);font-size:.66rem;letter-spacing:.03em;color:var(--accent);text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer}
   .shelf-balance:hover{color:var(--ink)}
   .add-item-menu{position:relative}
@@ -588,14 +637,21 @@
     <!-- PREVIEW -->
     <div class="preview">
       <div class="prev-head">
-        <div><span class="ph-type" id="phType">Szafa wnękowa</span> · podgląd 2D</div>
+        <div><span class="ph-type" id="phType">Szafa wnękowa</span> · <span id="phMode">podgląd 2D</span></div>
         <div class="prev-tabs">
           <button class="prev-tab on" data-view="front">Front</button>
           <button class="prev-tab" data-view="open">Wnętrze</button>
+          <button class="prev-tab" data-view="3d">3D</button>
         </div>
       </div>
       <div class="prev-canvas">
         <svg id="cabinetSvg" viewBox="-40 -15 680 730" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div id="view3d" class="view3d" hidden>
+          <div class="view3d-ctl">
+            <button type="button" class="v3d-btn" id="v3dFronts">Pokaż fronty</button>
+          </div>
+          <div class="view3d-hint mono">Przeciągnij, aby obrócić · kółko = zoom</div>
+        </div>
       </div>
       <div class="prev-foot">
         <div><strong id="pfDim">2000 × 2600 × 600</strong> mm · <span id="pfSections">3 sekcje</span></div>
@@ -659,6 +715,101 @@
             <div class="blenda-cell">
               <label>Góra</label>
               <div class="dim-input"><input type="number" id="blendaTop" min="0" max="200" step="5" value="0"/><span class="unit">mm</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SKOS / NIEPROSTOKĄTNA WNĘKA -->
+        <div class="blenda-block">
+          <div class="blenda-head">
+            <div>
+              <div class="blenda-title">Skośny sufit</div>
+              <div class="blenda-sub">Poddasze, ścięty sufit, zabudowa pod schodami. Podaj wysokość przy niższej krawędzi — konfigurator sam przytnie sekcje do skosu.</div>
+            </div>
+            <div class="band-toggle">
+              <button type="button" data-slope="off" id="slopeOff">Brak</button>
+              <button type="button" data-slope="on" id="slopeOn">Skos</button>
+            </div>
+          </div>
+          <div class="blenda-row" id="slopeCfg" hidden>
+            <div class="blenda-cell">
+              <label>Sufit opada w</label>
+              <div class="band-pos">
+                <button type="button" data-slopeside="left">← lewo</button>
+                <button type="button" data-slopeside="right">prawo →</button>
+              </div>
+            </div>
+            <div class="blenda-cell">
+              <label>Wysokość niższej krawędzi</label>
+              <div class="dim-input"><input type="number" id="slopeHLow" min="300" step="10"/><span class="unit">mm</span></div>
+            </div>
+            <div class="blenda-cell">
+              <label>Wysokość wyższej</label>
+              <div class="dim-input"><input type="number" id="slopeHHigh" disabled/><span class="unit">mm</span></div>
+            </div>
+            <div class="blenda-cell">
+              <label>Długość prostego sufitu <span style="opacity:.6">(0 = skos od krawędzi)</span></label>
+              <div class="dim-input"><input type="number" id="slopeFlat" min="0" step="10"/><span class="unit">mm</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- USKOK / KOMIN -->
+        <div class="blenda-block">
+          <div class="blenda-head">
+            <div>
+              <div class="blenda-title">Uskok we wnęce</div>
+              <div class="blenda-sub">Wystający komin, rura, obudowa pionu, załamanie ściany. Podaj rozmiar przeszkody — sekcje nad/pod nią zostaną przycięte.</div>
+            </div>
+            <div class="band-toggle">
+              <button type="button" data-notch="off" id="notchOff">Brak</button>
+              <button type="button" data-notch="on" id="notchOn">Uskok</button>
+            </div>
+          </div>
+          <div class="blenda-row" id="notchCfg" hidden>
+            <div class="blenda-cell">
+              <label>Przy której ścianie</label>
+              <div class="band-pos">
+                <button type="button" data-notchside="left">← lewa</button>
+                <button type="button" data-notchside="right">prawa →</button>
+              </div>
+            </div>
+            <div class="blenda-cell">
+              <label>Od</label>
+              <div class="band-pos">
+                <button type="button" data-notchfrom="bottom">dołu</button>
+                <button type="button" data-notchfrom="top">góry</button>
+              </div>
+            </div>
+            <div class="blenda-cell">
+              <label>Szerokość przeszkody</label>
+              <div class="dim-input"><input type="number" id="notchW" min="50" step="10"/><span class="unit">mm</span></div>
+            </div>
+            <div class="blenda-cell">
+              <label>Wysokość przeszkody</label>
+              <div class="dim-input"><input type="number" id="notchH" min="50" step="10"/><span class="unit">mm</span></div>
+            </div>
+            <div class="blenda-cell">
+              <label>Głębokość przeszkody</label>
+              <div class="dim-input"><input type="number" id="notchD" min="20" step="10"/><span class="unit">mm</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SZKICOWNIK WNĘKI -->
+        <div class="blenda-block">
+          <div class="blenda-head">
+            <div>
+              <div class="blenda-title">Szkic wnęki</div>
+              <div class="blenda-sub">Nietypowy kształt, którego nie da się opisać wymiarami? Narysuj obrys wnęki na siatce — szkic doklejamy do zapytania.</div>
+            </div>
+            <button type="button" class="sketch-open-btn" id="sketchOpen">Narysuj wnękę</button>
+          </div>
+          <div class="sketch-preview" id="sketchPreview" hidden>
+            <img id="sketchThumb" alt="Szkic wnęki"/>
+            <div class="sketch-preview-meta">
+              <span class="mono">Szkic dołączony do zapytania</span>
+              <button type="button" class="sketch-clear" id="sketchClear">Usuń szkic</button>
             </div>
           </div>
         </div>
@@ -956,6 +1107,33 @@
   <a href="index.html" style="padding:.85rem 1.5rem;background:var(--ink);color:var(--paper);border-radius:2px;font-size:.86rem">Wróć na stronę główną</a>
 </div>
 
+<!-- SZKICOWNIK WNĘKI — modal -->
+<div class="sk-modal" id="sketchModal">
+  <div class="sk-box">
+    <div class="sk-head">
+      <div>
+        <h3>Szkic wnęki</h3>
+        <p>Klikaj po siatce, żeby obrysować kształt wnęki (patrząc na nią od przodu). Punkty przyciągają się do kratki. Zamknij obrys klikając w pierwszy punkt.</p>
+      </div>
+      <button type="button" class="sk-close" id="sketchClose" title="Zamknij">×</button>
+    </div>
+    <div class="sk-body">
+      <div class="sk-canvas-wrap"><canvas id="sketchCanvas" width="1000" height="640"></canvas></div>
+      <div class="sk-tools">
+        <button type="button" id="skUndo">← Cofnij punkt</button>
+        <button type="button" id="skClose2">Zamknij obrys</button>
+        <button type="button" id="skClear">Wyczyść</button>
+        <label class="sk-scale">1 kratka = <input type="number" id="skGridMm" value="100" min="10" step="10"/> mm</label>
+      </div>
+      <div class="sk-hint">Wskazówka: zacznij od lewego dolnego narożnika i idź zgodnie z ruchem wskazówek zegara. Wymiary policzymy sami — szkic służy do zrozumienia kształtu.</div>
+    </div>
+    <div class="sk-foot">
+      <button type="button" class="sk-cancel" id="skCancel">Anuluj</button>
+      <button type="button" class="sk-save" id="skSave">Zapisz szkic</button>
+    </div>
+  </div>
+</div>
+
 <!-- COOKIE BANNER -->
 <div class="cookie-bar" id="cookieBar">
   <div class="cookie-text">
@@ -976,7 +1154,8 @@
 })();
 </script>
 
-<script src="konfigurator-data.js?v=174"></script>
-<script src="konfigurator-app.js?v=174"></script>
+<script src="konfigurator-data.js?v=204"></script>
+<script src="konfigurator-3d.js?v=204"></script>
+<script src="konfigurator-app.js?v=204"></script>
 </body>
 </html>
